@@ -31,21 +31,21 @@ struct space{
 
 struct level createLevel(int levelIndex)  //funkcja tworząca poziom, alokująca pamięć na planszę i flagi do planszy
 {
-    struct level arg={levelIndex}; 
-    arg.levelPlane=calloc((levelIndex+1)*(levelIndex+1),sizeof(int));
-    arg.levelPlaneFlags=calloc((levelIndex+1)*(levelIndex+1),sizeof(int));
-    return arg;
+    struct level createdLevel={levelIndex}; 
+    createdLevel.levelPlane=calloc((levelIndex+1)*(levelIndex+1),sizeof(int));
+    createdLevel.levelPlaneFlags=calloc((levelIndex+1)*(levelIndex+1),sizeof(int));
+    return createdLevel;
 }
 
 struct space createSpace(int height) //funkcja tworząca przestrzeń poziomów
 {
-    struct space arg={height};
-    arg.levelSpace=calloc(height,sizeof(struct level));
+    struct space createdSpace={height};
+    createdSpace.levelSpace=calloc(height,sizeof(struct level));
     for(int i=0;i<height;i++)
     {
-     arg.levelSpace[i]=createLevel(i+1); //poziomy ułożone są od góry, poziom o indeksie 0 jest na samej górze i ma wielkość 1   
+     createdSpace.levelSpace[i]=createLevel(i+1); //poziomy ułożone są od góry, poziom o indeksie 0 jest na samej górze i ma wielkość 1   
     }
-    return arg;
+    return createdSpace;
 }
 
 void main()

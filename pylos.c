@@ -26,6 +26,7 @@ struct player{
 
 struct space{
     int pileHeight; //wysokość planszy
+    int totalNumberOfStones;
     struct level* levelSpace; //wskaźnik do tablicy poziomów
 };
 
@@ -43,9 +44,25 @@ struct space createSpace(int height) //funkcja tworząca przestrzeń poziomów
     createdSpace.levelSpace=calloc(height,sizeof(struct level));
     for(int i=0;i<height;i++)
     {
-     createdSpace.levelSpace[i]=createLevel(i+1); //poziomy ułożone są od góry, poziom o indeksie 0 jest na samej górze i ma wielkość 1   
+        createdSpace.levelSpace[i]=createLevel(i+1); //poziomy ułożone są od góry, poziom o indeksie 0 jest na samej górze i ma wielkość 1   
+        createdSpace.totalNumberOfStones+=(i+1)*(i+1); //liczba kamieni jest taka sama jak liczba wszystkich pól
     }
     return createdSpace;
+}
+
+struct player createPlayer(int side, struct space wholeBoard)
+{
+    struct player createdPlayer;
+    createdPlayer.side=side;
+    createdPlayer.numberOfStones = wholeBoard.totalNumberOfStones/2; //gracz dostaje połowę dostępnych kamieni
+    return createdPlayer;
+}
+
+float evaluate(struct player white, struct player black, struct space wholeBoard)
+{
+    float score=0; //dodatni wynik oznacza że czarne mają przewagę
+    score = black.numberOfStones - white.numberOfStones;
+    return score;
 }
 
 void main()

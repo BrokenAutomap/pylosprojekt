@@ -12,6 +12,12 @@
 #define ZABLOKOWANA 11 //flaga kulki na której leży inna kulka lub nie jest częścią formacji
 #define WSPARTA 12 //flaga pustego pola na którym można położyć kulkę (kulka nie może wisieć w powietrzu)
 
+struct space{
+    int pileHeight; //wysokość planszy
+    int totalNumberOfStones;
+    struct level* levelSpace; //wskaźnik do tablicy poziomów
+};
+
 struct level{
     int levelIndex; //numer poziomu, (wielkość planszy -1) czyli poziom na samej górze to 0, niżej 1 i tak dalej
     int *levelPlane; //wskaźnik do tablicy przechowującej planszę poziomu
@@ -22,12 +28,6 @@ struct level{
 struct player{
     int numberOfStones; //liczba kulek
     int side; //kolor kulek
-};
-
-struct space{
-    int pileHeight; //wysokość planszy
-    int totalNumberOfStones;
-    struct level* levelSpace; //wskaźnik do tablicy poziomów
 };
 
 struct level createLevel(int levelIndex)  //funkcja tworząca poziom, alokująca pamięć na planszę i flagi do planszy
@@ -64,6 +64,27 @@ float evaluate(struct player white, struct player black, struct space wholeBoard
     score = black.numberOfStones - white.numberOfStones;
     return score;
 }
+
+void stageprint(struct space space)
+{
+    for (int i = 0; i < space.pileHeight; i++)
+    {
+        for (int  row = 0; row <= i; row++)
+        {
+            for (int col = 0; col <= i; col++)
+            {
+                printf("%d", space.levelSpace->levelPlane[col + row * space.levelSpace->levelIndex]);
+                
+            }
+            printf("\n");
+        }   
+        printf("\n\n");
+    }
+    
+    
+    
+}
+
 
 void main()
 {

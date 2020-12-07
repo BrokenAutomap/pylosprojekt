@@ -20,8 +20,8 @@ struct space{
 
 struct level{
     int levelIndex; //numer poziomu, (wielkość planszy -1) czyli poziom na samej górze to 0, niżej 1 i tak dalej
-    int *levelPlane; //wskaźnik do tablicy przechowującej planszę poziomu
-    int *levelPlaneFlags; //wksaźnik do tablicy przechowującej flagi poziomu (gdzie można położyć kulkę, których kulek nie można usunąć bo są przyciśnięte inną kulką wyżej itp. wydaje mi się wstępnie że lepiej będzie to oddzielnie przechowywać niż liczyć przy każdej operacji)
+    int **levelPlane; //wskaźnik do tablicy przechowującej planszę poziomu
+    int **levelPlaneFlags; //wksaźnik do tablicy przechowującej flagi poziomu (gdzie można położyć kulkę, których kulek nie można usunąć bo są przyciśnięte inną kulką wyżej itp. wydaje mi się wstępnie że lepiej będzie to oddzielnie przechowywać niż liczyć przy każdej operacji)
     //proponuję przechowywać dane w formie intów z reprezentacjami liczbowymi zdefiniowanymi w głónym pliku
 };
 
@@ -33,8 +33,14 @@ struct player{
 struct level createLevel(int levelIndex)  //funkcja tworząca poziom, alokująca pamięć na planszę i flagi do planszy
 {
     struct level createdLevel={levelIndex}; 
-    createdLevel.levelPlane=calloc((levelIndex+1)*(levelIndex+1),sizeof(int));
-    createdLevel.levelPlaneFlags=calloc((levelIndex+1)*(levelIndex+1),sizeof(int));
+    createdLevel.levelPlane = (int **) calloc((levelIndex+1)*(levelIndex+1),sizeof(int*));
+        for(int i=0;i<(levelIndex+1)*(levelIndex+1);i++)
+            createdLevel.levelPlane[i] = (int *) calloc((levelIndex+1)*(levelIndex+1),sizeof(int)); //dynamiczna tablica 2d pól
+    
+    createdLevel.levelPlaneFlags = (int **) calloc((levelIndex+1)*(levelIndex+1),sizeof(int*));
+        for(int i=0;i<(levelIndex+1)*(levelIndex+1);i++)
+            createdLevel.levelPlaneFlags[i] = (int *) calloc((levelIndex+1)*(levelIndex+1),sizeof(int)); //dynamiczna tablica 2d flag
+    
     return createdLevel;
 }
 
@@ -65,7 +71,7 @@ float evaluate(struct player white, struct player black, struct space wholeBoard
     return score;
 }
 
-void stageprint(struct space space)
+void stageprint(struct space space) //można już używać zapisu tab[][], dodałem dynamiczne tablice
 {
     for (int i = 0; i < space.pileHeight; i++)
     {

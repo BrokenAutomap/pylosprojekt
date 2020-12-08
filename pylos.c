@@ -8,9 +8,9 @@
 #define CZARNAKULKA 2
 
 //flagi
-#define DOZDJĘCIA 10 //flaga kulki która nie jest zablokowana i należy do jednej z formacji które można przesunąć/usunąć z planszy np. kwadrat lub linia
-#define ZABLOKOWANA 11 //flaga kulki na której leży inna kulka lub nie jest częścią formacji
-#define WSPARTA 12 //flaga pustego pola na którym można położyć kulkę (kulka nie może wisieć w powietrzu)
+#define DOZDJECIA 10 //flaga kulki która nie jest zablokowana i należy do jednej z formacji które można przesunąć/usunąć z planszy np. kwadrat lub linia
+#define ZABLOKOWANA 20 //flaga kulki na której leży inna kulka lub nie jest częścią formacji
+#define WSPARTA 30 //flaga pustego pola na którym można położyć kulkę (kulka nie może wisieć w powietrzu)
 
 struct space{
     int pileHeight; //wysokość planszy
@@ -92,6 +92,30 @@ struct space makeMove(struct space board, struct player moveMaker,int heightStar
     }
 }
 
+struct space stagefill(struct space space) //można już używać zapisu tab[][], dodałem dynamiczne tablice
+{
+    struct space newspace = createSpace(space.pileHeight);
+    for (int i = 0; i < space.pileHeight; i++)
+    {
+        for (int  row = 0; row <= i; row++)
+            for (int col = 0; col <= i; col++)
+            {
+                newspace.levelSpace[i].levelPlane[col][row] = PUSTEPOLE;
+                
+            } 
+        if (i = space.pileHeight - 1)
+        {
+            for (int  row = 0; row < space.pileHeight; row++)
+                for (int col = 0; col < space.pileHeight; col++)
+                {
+                    newspace.levelSpace[i].levelPlaneFlags[col][row] = WSPARTA;
+                    
+                } 
+        }
+    }
+    return newspace;
+}
+
 void stageprint(struct space space) //można już używać zapisu tab[][], dodałem dynamiczne tablice
 {
     for (int i = 0; i < space.pileHeight; i++)
@@ -100,8 +124,7 @@ void stageprint(struct space space) //można już używać zapisu tab[][], doda�
         {
             for (int col = 0; col <= i; col++)
             {
-                printf("%d\t", space.levelSpace->levelPlane[col][row]);
-                
+                printf("%d %d\t", space.levelSpace[i].levelPlane[col][row], space.levelSpace[i].levelPlaneFlags[col][row]);
             }
             printf("\n");
         }   
@@ -109,23 +132,13 @@ void stageprint(struct space space) //można już używać zapisu tab[][], doda�
     }  
 }
 
-struct space stagefill(struct space space) //można już używać zapisu tab[][], dodałem dynamiczne tablice
+void stagecheck(struct space space)
 {
-    struct space newspace = createSpace(space.pileHeight);
-    for (int i = 0; i < space.pileHeight; i++)
-        for (int  row = 0; row <= i; row++)
-            for (int col = 0; col <= i; col++)
-            {
-                newspace.levelSpace->levelPlane[col][row] = PUSTEPOLE;
-                
-            } 
-    return newspace;
+    
 }
 
 
 void main()
-{
-    
-    
+{   
     stageprint(stagefill(createSpace(4)));
 }

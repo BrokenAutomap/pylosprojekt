@@ -4,7 +4,7 @@
 
 //pola
 #define PUSTEPOLE 0
-#define BIAŁAKULKA 1
+#define BIALAKULKA 1
 #define CZARNAKULKA 2
 
 //flagi
@@ -100,20 +100,32 @@ void stageprint(struct space space) //można już używać zapisu tab[][], doda�
         {
             for (int col = 0; col <= i; col++)
             {
-                printf("%d", space.levelSpace->levelPlane[col + row * space.levelSpace->levelIndex]);
+                printf("%d\t", space.levelSpace->levelPlane[col][row]);
                 
             }
             printf("\n");
         }   
         printf("\n\n");
-    }
-    
-    
-    
+    }  
+}
+
+struct space stagefill(struct space space) //można już używać zapisu tab[][], dodałem dynamiczne tablice
+{
+    struct space newspace = createSpace(space.pileHeight);
+    for (int i = 0; i < space.pileHeight; i++)
+        for (int  row = 0; row <= i; row++)
+            for (int col = 0; col <= i; col++)
+            {
+                newspace.levelSpace->levelPlane[col][row] = PUSTEPOLE;
+                
+            } 
+    return newspace;
 }
 
 
 void main()
 {
-
+    
+    
+    stageprint(stagefill(createSpace(4)));
 }

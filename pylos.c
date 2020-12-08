@@ -79,7 +79,7 @@ void stageprint(struct space space) //można już używać zapisu tab[][], doda�
         {
             for (int col = 0; col <= i; col++)
             {
-                printf("%d", space.levelSpace->levelPlane[col][row]);
+                printf("%d\t", space.levelSpace->levelPlane[col][row]);
                 
             }
             printf("\n");
@@ -88,20 +88,23 @@ void stageprint(struct space space) //można już używać zapisu tab[][], doda�
     }  
 }
 
-void stagefill(struct space space) //można już używać zapisu tab[][], dodałem dynamiczne tablice
+struct space stagefill(struct space space) //można już używać zapisu tab[][], dodałem dynamiczne tablice
 {
+    struct space newspace = createSpace(space.pileHeight);
     for (int i = 0; i < space.pileHeight; i++)
         for (int  row = 0; row <= i; row++)
             for (int col = 0; col <= i; col++)
             {
-                space.levelSpace->levelPlane[col][row] = PUSTEPOLE;
+                newspace.levelSpace->levelPlane[col][row] = PUSTEPOLE;
                 
             } 
+    return newspace;
 }
 
 
-//bhasvgasdvgj
 void main()
 {
-
+    
+    
+    stageprint(stagefill(createSpace(4)));
 }

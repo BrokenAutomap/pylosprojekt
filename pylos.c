@@ -100,7 +100,7 @@ void stagefill(struct space space) //można już używać zapisu tab[][], dodał
 }
 
 
-
+//bhasvgasdvgj
 void main()
 {
 

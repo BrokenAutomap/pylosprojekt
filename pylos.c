@@ -8,7 +8,7 @@
 #define CZARNAKULKA 2
 
 //flagi
-#define DORUSZENIA 10 //flaga kulki która nie jest zablokowana i należy do jednej z formacji które można przesunąć/usunąć z planszy np. kwadrat lub linia
+#define DOZDJĘCIA 10 //flaga kulki która nie jest zablokowana i należy do jednej z formacji które można przesunąć/usunąć z planszy np. kwadrat lub linia
 #define ZABLOKOWANA 11 //flaga kulki na której leży inna kulka lub nie jest częścią formacji
 #define WSPARTA 12 //flaga pustego pola na którym można położyć kulkę (kulka nie może wisieć w powietrzu)
 
@@ -67,8 +67,29 @@ struct player createPlayer(int side, struct space wholeBoard)
 float evaluate(struct player white, struct player black, struct space wholeBoard)
 {
     float score=0; //dodatni wynik oznacza że czarne mają przewagę
-    score = black.numberOfStones - white.numberOfStones;
+    score = black.numberOfStones - white.numberOfStones;  //gracz mający więcej kamieni w zapasie ma przewagę
+    //   score+= ;  //kamienie w formacji dają małą przewagę
     return score;
+}
+
+struct space makeMove(struct space board, struct player moveMaker,int heightStart, int xStart, int yStart, int heightLand, int xLand, int yLand) //plansza, gracz wykonujący ruch, pozycja startowa, pozycka końcowa
+{
+//nie zawsze istnieje pozycja końcowa i początkowa (czasami dokłada się kulki z poza planszy lub zdejmuje kulki z planszy, w takim wypadku gdy nieistniejąca pozycja pozątkowa lub końcowa ma zapis height=-1)
+    if(heightStart==-1&&heightLand!=-1) //dołożenie kulki do planszy
+    {
+        if(board.levelSpace[heightLand].levelPlane[xLand][yLand]==PUSTEPOLE&&board.levelSpace[heightLand].levelPlaneFlags[xLand][yLand]==WSPARTA) //kulkę można położyć tylko w miejscu w którym nie ma kulki i gdy miejsce jest wsparte
+        {
+            board.levelSpace[heightLand].levelPlane[xLand][yLand]=moveMaker.side;
+        }
+    }
+    else if(heightLand==-1&&heightStart!=-1) //zdjęcie kulki z planszy
+    {
+        if(board.levelSpace[heightStart].levelPlane[xStart][yStart]!=PUSTEPOLE&&board.levelSpace[heightLand].levelPlaneFlags[xLand][yLand]==1);
+    }
+    else if(heightStart>=0&&heightLand>heightStart) //przeniesienie kulki na planszy, można tylko przenosić do góry
+    {
+
+    }
 }
 
 void stageprint(struct space space) //można już używać zapisu tab[][], dodałem dynamiczne tablice

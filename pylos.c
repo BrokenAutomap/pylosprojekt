@@ -95,15 +95,15 @@ struct space makeMove(struct space board, struct player moveMaker,int heightStar
 struct space stagefill(struct space space) //można już używać zapisu tab[][], dodałem dynamiczne tablice
 {
     struct space newspace = createSpace(space.pileHeight);
-    for (int i = 0; i < space.pileHeight; i++)
+    for (int i = 0; i < space.pileHeight; i++) 
     {
-        for (int  row = 0; row <= i; row++)
+        for (int  row = 0; row <= i; row++)// wszystkie pola ustaw na puste
             for (int col = 0; col <= i; col++)
             {
                 newspace.levelSpace[i].levelPlane[col][row] = PUSTEPOLE;
                 
             } 
-        if (i = space.pileHeight - 1)
+        if (i = space.pileHeight - 1) // wypełnia ostatni lvl wsparciem
         {
             for (int  row = 0; row < space.pileHeight; row++)
                 for (int col = 0; col < space.pileHeight; col++)
@@ -116,7 +116,7 @@ struct space stagefill(struct space space) //można już używać zapisu tab[][]
     return newspace;
 }
 
-void stageprint(struct space space) //można już używać zapisu tab[][], dodałem dynamiczne tablice
+void stageprint(struct space space) // wypisuje zawartość
 {
     for (int i = 0; i < space.pileHeight; i++)
     {
@@ -132,13 +132,36 @@ void stageprint(struct space space) //można już używać zapisu tab[][], doda�
     }  
 }
 
-void stagecheck(struct space space)
+int Kwadrat(struct space space, int col, int row, int level)
 {
+    if (space.levelSpace[level].levelPlane[col + 1][row] != PUSTEPOLE && space.levelSpace[level].levelPlane[col][row + 1] != PUSTEPOLE && space.levelSpace[level].levelPlane[col + 1][row + 1] != PUSTEPOLE)
+        return 1;
+    else
+    {
+        return 0;
+    }
     
-}
+}  
 
+void stageflagcheck(struct space space) // sprawdza flagi 
+{
+    for (int i = 1; i < space.pileHeight - 1; i++)
+    {
+
+        for (int  row = 0; row <= i - 1; row++)// 
+            for (int col = 0; col <= i - 1; col++)
+            {
+                if (space.levelSpace[i].levelPlane[col][row] != PUSTEPOLE && kwadrat(space, col, row, i) == 1)
+                {
+                    space.levelSpace[i -1].levelPlaneFlags[col][row] = WSPARTA;
+                }
+                
+            } 
+        
+    } 
+}
 
 void main()
 {   
-    stageprint(stagefill(createSpace(4)));
+    stageprint(stagefill(createSpace(3)));
 }

@@ -30,6 +30,69 @@ struct player{
     int side; //kolor kulek
 };
 
+int kwadrat(struct space space, int col, int row, int level, int zmienna)
+{
+    if (space.levelSpace[level].levelPlane[col + 1][row] != zmienna && space.levelSpace[level].levelPlane[col][row + 1] != zmienna && space.levelSpace[level].levelPlane[col + 1][row + 1] != zmienna)
+        return 1;
+    else
+    {
+        return 0;
+    }
+    
+}  
+
+void stageflagcheck(struct space space) // sprawdza flagi 
+{
+    for (int i = 1; i < space.pileHeight - 1; i++)
+    {
+
+        for (int  row = 0; row <= i - 1; row++)// 
+            for (int col = 0; col <= i - 1; col++)
+            {
+                if (space.levelSpace[i].levelPlane[col][row] != PUSTEPOLE && kwadrat(space, col, row, i, PUSTEPOLE) == 1)
+                {
+                    space.levelSpace[i -1].levelPlaneFlags[col][row] = WSPARTA;
+                }
+                
+            } 
+    } 
+    for (int i = 1; i < space.pileHeight - 1; i++)
+    {
+        for (int  row = 0; row <= i - 1; row++)// 
+            for (int col = 0; col <= i - 1; col++)
+            {
+                if(space.levelSpace[i - 1].levelPlane[col][row] != PUSTEPOLE)
+                {
+                    space.levelSpace[i].levelPlaneFlags[col][row] = ZABLOKOWANA;
+                    space.levelSpace[i].levelPlaneFlags[col + 1][row + 1] = ZABLOKOWANA;
+                    space.levelSpace[i].levelPlaneFlags[col + 1][row] = ZABLOKOWANA;
+                    space.levelSpace[i].levelPlaneFlags[col][row + 1] = ZABLOKOWANA;
+                }
+                
+            } 
+    } 
+
+    for (int i = 1; i < space.pileHeight - 1; i++)
+    {
+
+        for (int  row = 0; row <= i - 1; row++)// 
+            for (int col = 0; col <= i - 1; col++)
+            {
+                if (space.levelSpace[i].levelPlane[col][row] != PUSTEPOLE && kwadrat(space, col, row, i, PUSTEPOLE) == 1)
+                {
+                    space.levelSpace[i].levelPlaneFlags[col][row] = DOZDJECIA;
+                    space.levelSpace[i].levelPlaneFlags[col + 1][row + 1] = DOZDJECIA;
+                    space.levelSpace[i].levelPlaneFlags[col + 1][row] = DOZDJECIA;
+                    space.levelSpace[i].levelPlaneFlags[col][row + 1] = DOZDJECIA;
+                }
+                
+            } 
+    }
+
+
+}
+
+
 struct level createLevel(int levelIndex)  //funkcja tworząca poziom, alokująca pamięć na planszę i flagi do planszy
 {
     struct level createdLevel={levelIndex}; 
@@ -132,34 +195,7 @@ void stageprint(struct space space) // wypisuje zawartość
     }  
 }
 
-int kwadrat(struct space space, int col, int row, int level)
-{
-    if (space.levelSpace[level].levelPlane[col + 1][row] != PUSTEPOLE && space.levelSpace[level].levelPlane[col][row + 1] != PUSTEPOLE && space.levelSpace[level].levelPlane[col + 1][row + 1] != PUSTEPOLE)
-        return 1;
-    else
-    {
-        return 0;
-    }
-    
-}  
 
-void stageflagcheck(struct space space) // sprawdza flagi 
-{
-    for (int i = 1; i < space.pileHeight - 1; i++)
-    {
-
-        for (int  row = 0; row <= i - 1; row++)// 
-            for (int col = 0; col <= i - 1; col++)
-            {
-                if (space.levelSpace[i].levelPlane[col][row] != PUSTEPOLE && kwadrat(space, col, row, i) == 1)
-                {
-                    space.levelSpace[i -1].levelPlaneFlags[col][row] = WSPARTA;
-                }
-                
-            } 
-        
-    } 
-}
 
 void main()
 {   

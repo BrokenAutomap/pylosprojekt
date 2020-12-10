@@ -132,7 +132,7 @@ void stageprint(struct space space) // wypisuje zawartość
     }  
 }
 
-int Kwadrat(struct space space, int col, int row, int level)
+int kwadrat(struct space space, int col, int row, int level)
 {
     if (space.levelSpace[level].levelPlane[col + 1][row] != PUSTEPOLE && space.levelSpace[level].levelPlane[col][row + 1] != PUSTEPOLE && space.levelSpace[level].levelPlane[col + 1][row + 1] != PUSTEPOLE)
         return 1;

@@ -12,9 +12,15 @@
 #define CZARNAKULKA 2
 
 //flagi
-#define DOZDJECIA 10 //flaga kulki która nie jest zablokowana i należy do jednej z formacji które można przesunąć/usunąć z planszy np. kwadrat lub linia
+#define DOZDJECIA 10 //flaga kulki która nie jest zablokowana i należy do jednej z formacji które można usunąć z planszy np. kwadrat lub linia
 #define ZABLOKOWANA 20 //flaga kulki na której leży inna kulka lub nie jest częścią formacji
 #define WSPARTA 30 //flaga pustego pola na którym można położyć kulkę (kulka nie może wisieć w powietrzu)
+
+//rodzaje ruchów
+#define DOLOZENIE 1
+#define ZDJECIE 2
+#define PRZENIESIENIE 3
+
 
 struct space{
     int pileHeight; //wysokość planszy
@@ -30,33 +36,38 @@ struct level{
 };
 
 struct player{
-    int numberOfStones; //liczba kulek
+    int numberOfStones; //liczba kulek gracza w zapasie
     int side; //kolor kulek
 };
 
-struct position{ //struktura do przechowywania pozycji odebranej od użytkownika / ruchu
-    int levelHeight; //numer poziomu
-    int x; //współrzędna x
-    int y; //współrzędna y
+struct move{ //struktura do przechowywania pozycji odebranej od użytkownika / ruchu
+    int levelHeightStart; //numer poziomu 
+    int xStart; //współrzędna x
+    int yStart; //współrzędna y
+    int levelHeightLand;
+    int xLand;
+    int yLand;
+    int moveType; //rodzaj ruchu
+    struct player player; //gracz wykonujacy ruch
 };
 
 struct moveList{ //lista jednokierunkowa przechowująca listę ruchów (potrzebne do cofania ruchów i przeprowadzenia analizy drzewa)
     struct moveList *moveRecord; //wskaźnik do kolejnego ruchu
     
-    struct position position; //informacje o ruchu
-    int moveId; //numer ruchu pojedynczej pozycji w liście
+    struct move move; //informacje o ruchu
+    int moveId; //numer ruchu, pozycji w liście
 };
 
 struct level createLevel(int levelIndex)  //funkcja tworząca poziom, alokująca pamięć na planszę i flagi do planszy
 {
     struct level createdLevel={levelIndex}; 
-    createdLevel.levelPlane = (int **) calloc((levelIndex+1)*(levelIndex+1),sizeof(int*));
-        for(int i=0;i<(levelIndex+1)*(levelIndex+1);i++)
-            createdLevel.levelPlane[i] = (int *) calloc((levelIndex+1)*(levelIndex+1),sizeof(int)); //dynamiczna tablica 2d pól
+    createdLevel.levelPlane = (int **) calloc((levelIndex+1),sizeof(int*));
+        for(int i=0;i<(levelIndex+1);i++)
+            createdLevel.levelPlane[i] = (int *) calloc((levelIndex+1),sizeof(int)); //dynamiczna tablica 2d pól
     
-    createdLevel.levelPlaneFlags = (int **) calloc((levelIndex+1)*(levelIndex+1),sizeof(int*));
-        for(int i=0;i<(levelIndex+1)*(levelIndex+1);i++)
-            createdLevel.levelPlaneFlags[i] = (int *) calloc((levelIndex+1)*(levelIndex+1),sizeof(int)); //dynamiczna tablica 2d flag
+    createdLevel.levelPlaneFlags = (int **) calloc((levelIndex+1),sizeof(int*));
+        for(int i=0;i<(levelIndex+1);i++)
+            createdLevel.levelPlaneFlags[i] = (int *) calloc((levelIndex+1),sizeof(int)); //dynamiczna tablica 2d flag
     
     return createdLevel;
 }
@@ -71,6 +82,20 @@ struct space createSpace(int height) //funkcja tworząca przestrzeń poziomów
         createdSpace.totalNumberOfStones+=(i+1)*(i+1); //liczba kamieni jest taka sama jak liczba wszystkich pól
     }
     return createdSpace;
+}
+
+void destroySpace(struct space space)
+{
+    for(int level=0;level<space.pileHeight;level++)
+    {
+        for(int col=0;col<=space.levelSpace[level].levelIndex;col++)
+        {
+            free(space.levelSpace[level].levelPlane[col]);
+            free(space.levelSpace[level].levelPlaneFlags[col]);
+        }
+        free(space.levelSpace[level].levelPlane);
+        free(space.levelSpace[level].levelPlaneFlags);
+    }
 }
 
 struct player createPlayer(int side, struct space wholeBoard)

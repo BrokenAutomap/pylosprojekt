@@ -11,24 +11,88 @@ float evaluate(struct player white, struct player black, struct space wholeBoard
     return score;
 }
 
-struct space makeMove(struct space board, struct player moveMaker,int heightStart, int xStart, int yStart, int heightLand, int xLand, int yLand) //plansza, gracz wykonujący ruch, pozycja startowa, pozycka końcowa
+struct move getUserMove(struct player player, struct space space) //funkcja pobiera ruch od uzytkownika i nie analizuje go
 {
-//nie zawsze istnieje pozycja końcowa i początkowa (czasami dokłada się kulki z poza planszy lub zdejmuje kulki z planszy, w takim wypadku gdy nieistniejąca pozycja pozątkowa lub końcowa ma zapis height=-1)
-    if(heightStart==-1&&heightLand!=-1) //dołożenie kulki do planszy
+    struct move move;
+    move.player=player;
+    int levelHeightTemp=100;
+    char type[8];
+
+    printf("\nRodzaje ruchu: DOLOZ, PRZENIES, ZDEJMIJ\n: ");
+    scanf("%s",type);
+    if(type=="DOLOZ") move.moveType=DOLOZENIE;
+    else if (type=="PRZENIES") move.moveType=PRZENIESIENIE;
+    else if(type=="ZDDEJMIJ") move.moveType=ZDJECIE;
+    else return move; //bledny ruch zostanie sprawdzony później funkcją checkIfLegal 
+    
+    switch(move.moveType)
     {
-        if(board.levelSpace[heightLand].levelPlane[xLand][yLand]==PUSTEPOLE&&board.levelSpace[heightLand].levelPlaneFlags[xLand][yLand]==WSPARTA) //kulkę można położyć tylko w miejscu w którym nie ma kulki i gdy miejsce jest wsparte
-        {
-            board.levelSpace[heightLand].levelPlane[xLand][yLand]=moveMaker.side;
-        }
+        case DOLOZENIE:
+            printf("\nPozycja na której chcesz położyć kulkę (wysokość x y)\n: ");
+            scanf("%d %d %d", levelHeightTemp,move.xLand,move.yLand);
+            move.levelHeightLand=abs(levelHeightTemp-space.pileHeight);
+            return move;
+        case PRZENIESIENIE:
+            printf("\nPozycja z której przenosisz i na którą przenosisz\nPoczątkowa pozycja (wysokość x t)\n:");
+            scanf("%d %d %d", &levelHeightTemp,&move.xStart,&move.yStart);
+            move.levelHeightStart=abs(levelHeightTemp-space.pileHeight);
+            printf("\nKońcowa pozycja (wysokość x t)\n:");
+            scanf("%d %d %d", &levelHeightTemp,&move.xLand,&move.yLand);
+            move.levelHeightLand=abs(levelHeightTemp-space.pileHeight);
+            return move;
+        case ZDJECIE:
+            printf("\nPozycje dwóch kulek które zdejmujesz\n:");
+            scanf("%d %d %d", &levelHeightTemp,&move.xStart,&move.yStart);
+            move.levelHeightStart=abs(levelHeightTemp-space.pileHeight);
+            return move;
+        default:
+            return move;
     }
-    else if(heightLand==-1&&heightStart!=-1) //zdjęcie kulki z planszy
+}
+
+struct space makeMove(struct space space,struct move move) //funkcja wykonuje dany ruch
+{
+    switch (move.moveType)
     {
-        if(board.levelSpace[heightStart].levelPlane[xStart][yStart]!=PUSTEPOLE&&board.levelSpace[heightLand].levelPlaneFlags[xLand][yLand]==1);
+        case ZDJECIE:
+            space.levelSpace[move.levelHeightStart].levelPlane[move.xStart][move.yStart]=PUSTEPOLE;
+            space.levelSpace[move.levelHeightLand].levelPlane[move.xLand][move.yLand]=PUSTEPOLE;
+            break;
+        case DOLOZENIE:
+            space.levelSpace[move.levelHeightLand].levelPlane[move.xLand][move.yLand]=move.player.side;
+            break;
+        case PRZENIESIENIE:
+            space.levelSpace[move.levelHeightStart].levelPlane[move.xStart][move.yStart]=PUSTEPOLE;
+            space.levelSpace[move.levelHeightLand].levelPlane[move.xLand][move.yLand]=move.player.side;
+            break;
     }
-    else if(heightStart>=0&&heightLand>heightStart) //przeniesienie kulki na planszy, można tylko przenosić do góry
+return space;
+}
+
+int checkIfLegal(struct space space, struct move move) //sprawdza czy typ ruchu jest poprawny i czy ruch jest dozwolony
+{
+    switch (move.moveType)
     {
-        
+        case ZDJECIE: //zdjecie kulki z planszy
+            if(space.levelSpace[move.levelHeightStart].levelPlane[move.xStart][move.yStart]==move.player.side && space.levelSpace[move.levelHeightLand].levelPlane[move.xLand][move.yLand]==move.player.side && space.levelSpace[move.levelHeightStart].levelPlaneFlags[move.xStart][move.yStart]==DOZDJECIA && space.levelSpace[move.levelHeightLand].levelPlane[move.xLand][move.yLand]==DOZDJECIA)
+                return 1;
+            else return 0;
+        case DOLOZENIE: //dolozenie kulki do planszy
+            if(space.levelSpace[move.levelHeightLand].levelPlane[move.xLand][move.yLand]==PUSTEPOLE && space.levelSpace[move.levelHeightStart].levelPlaneFlags[move.xStart][move.yStart]==WSPARTA)
+                return 1;
+            else return 0;
+        case PRZENIESIENIE: //przeniesienie kulki wyzej na planszy
+            if(move.levelHeightStart<move.levelHeightLand && space.levelSpace[move.levelHeightStart].levelPlane[move.xStart][move.yStart]==move.player.side && space.levelSpace[move.levelHeightLand].levelPlane[move.xLand][move.yLand]==PUSTEPOLE && space.levelSpace[move.levelHeightStart].levelPlaneFlags[move.xStart][move.yStart]!=ZABLOKOWANA && space.levelSpace[move.levelHeightLand].levelPlane[move.xLand][move.yLand]==WSPARTA)
+                return 1;
+            else return 0;
+        default:
+            return 0;
     }
+}
+
+struct move findBestMove(struct moveList moveList, struct space space, struct player white, struct player black)
+{
+
 }
 
 struct space stagefill(struct space space) //można już używać zapisu tab[][], dodałem dynamiczne tablice
@@ -99,7 +163,7 @@ void stageflagcheck(struct space space) // sprawdza flagi
     } 
     for (int i = 1; i < space.pileHeight - 1; i++)
     {
-        for (int  row = 0; row <= i - 1; row++)// 
+        for (int  row = 0; row <= i - 1; row++)
             for (int col = 0; col <= i - 1; col++)
             {
                 if(space.levelSpace[i - 1].levelPlane[col][row] != PUSTEPOLE)
@@ -116,10 +180,10 @@ void stageflagcheck(struct space space) // sprawdza flagi
     for (int i = 1; i < space.pileHeight - 1; i++)
     {
 
-        for (int  row = 0; row <= i - 1; row++)// 
+        for (int  row = 0; row <= i - 1; row++)
             for (int col = 0; col <= i - 1; col++)
             {
-                if (space.levelSpace[i].levelPlane[col][row] != PUSTEPOLE && kwadrat(space, col, row, i, PUSTEPOLE) == 1)
+                if (space.levelSpace[i].levelPlane[col][row] != PUSTEPOLE && kwadrat(space, col, row, i, PUSTEPOLE) == 1) //nie będzie działać, nie uwzględnia koloru kamieni, dowolny kwadrat kulek dostanie taką flagę
                 {
                     space.levelSpace[i].levelPlaneFlags[col][row] = DOZDJECIA;
                     space.levelSpace[i].levelPlaneFlags[col + 1][row + 1] = DOZDJECIA;
@@ -130,6 +194,7 @@ void stageflagcheck(struct space space) // sprawdza flagi
             } 
     }
 }
+
 
 
 #endif

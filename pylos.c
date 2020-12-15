@@ -22,8 +22,8 @@ void main()
             playerMove=getUserMove(playerTurn,gameSpace);
         }while(!checkIfLegal(gameSpace,playerMove));
         gameSpace=makeMove(gameSpace,playerMove);
-        stageprint(gameSpace);
         gameSpace=stageflagcheck(gameSpace);
+        stageprint(gameSpace);
         if(findFlag(gameSpace,DOZDJECIA)); //jeżeli można zdjąć gracz ma dodatkową turę i nie zmienia się aktywnego gracza
         else 
         {

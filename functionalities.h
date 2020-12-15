@@ -2,7 +2,6 @@
 #define FUNCTIONALITIES
 
 #include "definitions.h"
-
 float evaluate(struct player white, struct player black, struct space wholeBoard)
 {
     float score=0; //dodatni wynik oznacza że czarne mają przewagę
@@ -93,6 +92,17 @@ struct space makeMove(struct space space,struct move move) //funkcja wykonuje da
             break;
     }
 return space;
+}
+
+int findFlag(struct space space, int value)
+{
+    for(int level=0;level<space.pileHeight;level++)
+        for(int x=0;x<=level;x++)
+            for(int y=0;y<=level;y++)
+                {
+                  if(space.levelSpace[level].levelPlaneFlags[x][y]==value) return 1;  
+                }
+    return 0;
 }
 
 int checkIfLegal(struct space space, struct move move) //sprawdza czy typ ruchu jest poprawny i czy ruch jest dozwolony
@@ -227,7 +237,7 @@ void stageprint(struct space space) // wypisuje zawartość
         {
             for (int col = 0; col <= i; col++)
             {
-                printf("%d %d\t", space.levelSpace[i].levelPlane[col][row], space.levelSpace[i].levelPlaneFlags[col][row]);
+                printf("%d [%d]\t", space.levelSpace[i].levelPlane[col][row], space.levelSpace[i].levelPlaneFlags[col][row]);
             }
             printf("\n");
         }   
@@ -235,9 +245,9 @@ void stageprint(struct space space) // wypisuje zawartość
     }  
 }
 
-int kwadrat(struct space space, int col, int row, int level, int zmienna)
+int kwadrat(struct space space, int col, int row, int level, int zmienna) //sprawdza czy kwadrat kulek jest zapełniony
 {
-    if (space.levelSpace[level].levelPlane[col + 1][row] != zmienna && space.levelSpace[level].levelPlane[col][row + 1] != zmienna && space.levelSpace[level].levelPlane[col + 1][row + 1] != zmienna)
+    if (space.levelSpace[level].levelPlane[col][row] != zmienna && space.levelSpace[level].levelPlane[col + 1][row] != zmienna && space.levelSpace[level].levelPlane[col][row + 1] != zmienna && space.levelSpace[level].levelPlane[col + 1][row + 1] != zmienna)
         return 1;
     else
     {
@@ -246,56 +256,57 @@ int kwadrat(struct space space, int col, int row, int level, int zmienna)
     
 }  
 
-struct space stageflagcheck(struct space space) // sprawdza flagi 
+int kwadratkolor(struct space space, int col, int row, int level, int zmienna)
 {
-    for (int i = 1; i < space.pileHeight - 1; i++)
+    int kolor = space.levelSpace[level].levelPlane[col][row];
+    int pom = 0;
+    for (int i = 0; i <= 1; i++)
+        for (int j = 0; j <= 1; j++)
+            if (space.levelSpace[level].levelPlane[col + j][row + i] != zmienna && space.levelSpace[level].levelPlane[col + j][row + i] == kolor)
+                pom += 1;
+    
+    if (pom == 4)
     {
-
-        for (int  row = 0; row <= i - 1; row++)// 
-            for (int col = 0; col <= i - 1; col++)
-            {
-                if (space.levelSpace[i].levelPlane[col][row] != PUSTEPOLE && kwadrat(space, col, row, i, PUSTEPOLE) == 1)
-                {
-                    space.levelSpace[i -1].levelPlaneFlags[col][row] = WSPARTA;
-                }
-                
-            } 
-    } 
-    for (int i = 1; i < space.pileHeight - 1; i++)
+        return kolor;
+    }else
     {
-        for (int  row = 0; row <= i - 1; row++)
-            for (int col = 0; col <= i - 1; col++)
-            {
-                if(space.levelSpace[i - 1].levelPlane[col][row] != PUSTEPOLE)
-                {
-                    space.levelSpace[i].levelPlaneFlags[col][row] = ZABLOKOWANA;
-                    space.levelSpace[i].levelPlaneFlags[col + 1][row + 1] = ZABLOKOWANA;
-                    space.levelSpace[i].levelPlaneFlags[col + 1][row] = ZABLOKOWANA;
-                    space.levelSpace[i].levelPlaneFlags[col][row + 1] = ZABLOKOWANA;
-                }
-                
-            } 
-    } 
-
-    for (int i = 1; i < space.pileHeight - 1; i++)
-    {
-
-        for (int  row = 0; row <= i - 1; row++)
-            for (int col = 0; col <= i - 1; col++)
-            {
-                if (space.levelSpace[i].levelPlane[col][row] != PUSTEPOLE && kwadrat(space, col, row, i, PUSTEPOLE) == 1) //nie będzie działać, nie uwzględnia koloru kamieni, dowolny kwadrat kulek dostanie taką flagę
-                {
-                    space.levelSpace[i].levelPlaneFlags[col][row] = DOZDJECIA;
-                    space.levelSpace[i].levelPlaneFlags[col + 1][row + 1] = DOZDJECIA;
-                    space.levelSpace[i].levelPlaneFlags[col + 1][row] = DOZDJECIA;
-                    space.levelSpace[i].levelPlaneFlags[col][row + 1] = DOZDJECIA;
-                }
-                
-            } 
+        return 0;
     }
-    return space;
+    
 }
 
+struct space stageflagcheck(struct space space) // sprawdza flagi 
+{
+    struct space newspace = space;
+    for (int i = 1; i < newspace.pileHeight; i++)// jeżeli pod polem są kulki to pole jest wsparte
+        for (int  row = 0; row <= i - 1; row++)
+            for (int col = 0; col <= i - 1; col++)
+                if (kwadrat(newspace, col, row, i, PUSTEPOLE) == 1)
+                    newspace.levelSpace[i - 1].levelPlaneFlags[col][row] = WSPARTA;     
+
+    for (int i = 1; i < newspace.pileHeight; i++) // jeżeli na kulkach stoi kulka to znaczy że pod nią kulki są zablokowane
+        for (int  row = 0; row <= i - 1; row++)
+            for (int col = 0; col <= i - 1; col++)
+                if(newspace.levelSpace[i - 1].levelPlane[col][row] != PUSTEPOLE)
+                {
+                    newspace.levelSpace[i].levelPlaneFlags[col][row] = ZABLOKOWANA;
+                    newspace.levelSpace[i].levelPlaneFlags[col + 1][row + 1] = ZABLOKOWANA;
+                    newspace.levelSpace[i].levelPlaneFlags[col + 1][row] = ZABLOKOWANA;
+                    newspace.levelSpace[i].levelPlaneFlags[col][row + 1] = ZABLOKOWANA;
+                }
+
+    for (int i = 1; i < newspace.pileHeight; i++)
+        for (int  row = 0; row <= i - 1; row++)
+            for (int col = 0; col <= i - 1; col++)
+                if (kwadratkolor(newspace, col, row, i, PUSTEPOLE) == 1 || kwadratkolor(newspace, col, row, i, PUSTEPOLE) == 2) // sprawdza czy kwadrat jest zajęty i czy kolor
+                {
+                    newspace.levelSpace[i].levelPlaneFlags[col][row] = DOZDJECIA;
+                    newspace.levelSpace[i].levelPlaneFlags[col + 1][row + 1] = DOZDJECIA;
+                    newspace.levelSpace[i].levelPlaneFlags[col + 1][row] = DOZDJECIA;
+                    newspace.levelSpace[i].levelPlaneFlags[col][row + 1] = DOZDJECIA;
+                }
+    return newspace;
+}
 
 
 

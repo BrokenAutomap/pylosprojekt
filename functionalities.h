@@ -94,17 +94,6 @@ struct space makeMove(struct space space,struct move move) //funkcja wykonuje da
 return space;
 }
 
-int findFlag(struct space space, int value)
-{
-    for(int level=0;level<space.pileHeight;level++)
-        for(int x=0;x<=level;x++)
-            for(int y=0;y<=level;y++)
-                {
-                  if(space.levelSpace[level].levelPlaneFlags[x][y]==value) return 1;  
-                }
-    return 0;
-}
-
 int checkIfLegal(struct space space, struct move move) //sprawdza czy typ ruchu jest poprawny i czy ruch jest dozwolony
 {
     if(findFlag(space,DOZDJECIA) && move.moveType!=ZDJECIE) return 0;

@@ -11,6 +11,17 @@ float evaluate(struct player white, struct player black, struct space wholeBoard
     return score;
 }
 
+int findFlag(struct space space, int value)
+{
+    for(int level=0;level<space.pileHeight;level++)
+        for(int x=0;x<=level;x++)
+            for(int y=0;y<=level;y++)
+                {
+                  if(space.levelSpace[level].levelPlaneFlags[x][y]==value) return 1;  
+                }
+    return 0;
+}
+
 struct move getUserMove(struct player player, struct space space) //funkcja pobiera ruch od uzytkownika i nie analizuje go
 {
     struct move move;
@@ -33,6 +44,7 @@ struct move getUserMove(struct player player, struct space space) //funkcja pobi
             move.levelHeightLand=abs(levelHeightTemp-space.pileHeight);
             move.xLand--;
             move.yLand--;
+            move.player.numberOfStones--;
             return move;
         case PRZENIESIENIE:
             printf("\nPozycja z której przenosisz i na którą przenosisz\nPoczątkowa pozycja (wysokość x t)\n:");
@@ -47,11 +59,17 @@ struct move getUserMove(struct player player, struct space space) //funkcja pobi
             move.yStart--;
             return move;
         case ZDJECIE:
-            printf("\nPozycje dwóch kulek które zdejmujesz\n:");
+            printf("\nPozycje dwóch kulek które zdejmujesz\nPierwsza kulka\n:");
             scanf("%d %d %d", &levelHeightTemp,&move.xStart,&move.yStart);
             move.levelHeightStart=abs(levelHeightTemp-space.pileHeight);
+            printf("\nDruga kulka\n:");
+            scanf("%d %d %d", &levelHeightTemp,&move.xLand,&move.yLand);
+            move.levelHeightLand=abs(levelHeightTemp-space.pileHeight);
             move.xStart--;
             move.yStart--;
+            move.xLand--;
+            move.yLand--;
+            move.player.numberOfStones-=2;
             return move;
         default:
             return move;
@@ -65,11 +83,9 @@ struct space makeMove(struct space space,struct move move) //funkcja wykonuje da
         case ZDJECIE:
             space.levelSpace[move.levelHeightStart].levelPlane[move.xStart][move.yStart]=PUSTEPOLE;
             space.levelSpace[move.levelHeightLand].levelPlane[move.xLand][move.yLand]=PUSTEPOLE;
-            move.player.numberOfStones+=2;
             break;
         case DOLOZENIE:
             space.levelSpace[move.levelHeightLand].levelPlane[move.xLand][move.yLand]=move.player.side;
-            move.player.numberOfStones--;
             break;
         case PRZENIESIENIE:
             space.levelSpace[move.levelHeightStart].levelPlane[move.xStart][move.yStart]=PUSTEPOLE;
@@ -101,20 +117,83 @@ int checkIfLegal(struct space space, struct move move) //sprawdza czy typ ruchu 
     }
 }
 
+struct movelist* addMoveToList(struct moveList *head, struct move move)
+{
+    if(head=NULL) //jeżeli nie ma głowy, tworzy głowę
+    {
+        struct moveList *newNode= (struct moveList*) calloc(1,sizeof(struct moveList));
+        newNode->moveId=0;
+        newNode->moveRecord=NULL;
+        newNode->move=move;
+        return newNode;
+
+    }
+    else
+    {
+        struct moveList *temp=head; //jeżeli jest głowa dodaje do listy
+        struct moveList *newNode= (struct moveList*) calloc(1,sizeof(struct moveList));
+        newNode->move=move;
+        int moveId=0;
+        while(temp->moveRecord!=NULL) 
+        {
+            temp=temp->moveRecord; //przejście do końca listy
+            moveId++;
+        }
+        newNode->moveId=moveId+1;
+        newNode->moveRecord=NULL;
+        temp->moveRecord=newNode;
+
+        return head;
+    }
+}
+
+struct moveList* generateAllMoves(struct space space, struct moveList depthMoves, struct player player)
+{
+    //przejście po każdym polu na planszy
+    struct moveList *possibleMoves=NULL;
+    for(int level=0;level<space.pileHeight;level++)
+        for(int y=0;y<=level;y++)
+            for(int x=0;x<=level;x++)
+            {
+                switch(space.levelSpace[level].levelPlaneFlags[x][y])
+                {
+                    case 0: //brak flagi oznacza że nie można nic zrobić z tym polem
+                        break;
+                    case ZABLOKOWANA: //zablokowanej kulki nie można ruszyć
+                        break;
+                    case WSPARTA: //na wspartym polu mozna postawic kulke lub wspartą kulkę przenieść na wsparte pole
+                        if(space.levelSpace[level].levelPlane[x][y]==PUSTEPOLE) //dodawanie kulki do planszy
+                        {
+                            struct move move;
+                            move.moveType=DOLOZENIE;
+                            move.player.side=player.side-1;
+                            move.levelHeightLand=level;
+                            move.xLand=x;
+                            move.yLand=y;
+                            possibleMoves=addMoveToList(possibleMoves,move);
+                        }
+                        else if(space.levelSpace[level].levelPlane[x][y]==player.side) //przenoszenie kulki poziom wyzej
+                        {
+
+                        }
+                }
+            }
+}
+
+
+
 struct move findBestMove(struct moveList historicMoveList, struct space space, struct player white, struct player black)
 {
     struct move possibleMovesTable[20];
     int possibleMovesCount=0, depthPossibleMovesCount=0;
-
+    struct player maximizer=black;
+    struct player minimizer=white;
     for(int depth=0;depth<10;depth++)
     {
 
     }
 
-
-
 }
-
 
 struct space stagefill(struct space space) //można już używać zapisu tab[][], dodałem dynamiczne tablice
 {
@@ -217,16 +296,7 @@ struct space stageflagcheck(struct space space) // sprawdza flagi
     return space;
 }
 
-int findFlag(struct space space, int value)
-{
-    for(int level=0;level<space.pileHeight;level++)
-        for(int x=0;x<=level;x++)
-            for(int y=0;y<=level;y++)
-                {
-                  if(space.levelSpace[level].levelPlaneFlags[x][y]==value) return 1;  
-                }
-    return 0;
-}
+
 
 
 

@@ -16,7 +16,6 @@ void main()
     struct player blackPlayer = createPlayer(CZARNAKULKA,gameSpace);
     struct move playerMove;
     struct player playerTurn=whitePlayer;
-    int activePlayerFlag=BIALAKULKA;
     while(whitePlayer.numberOfStones>0&&blackPlayer.numberOfStones>0)
     {  
         do{
@@ -28,15 +27,13 @@ void main()
         if(findFlag(gameSpace,DOZDJECIA)); //jeżeli można zdjąć gracz ma dodatkową turę i nie zmienia się aktywnego gracza
         else 
         {
-            if(activePlayerFlag==BIALAKULKA) 
+            if(playerTurn.side==BIALAKULKA) 
             {
                 playerTurn=blackPlayer;
-                activePlayerFlag=CZARNAKULKA;
             }
             else
             {
                 playerTurn=whitePlayer;
-                activePlayerFlag=BIALAKULKA;
             }
         }
     

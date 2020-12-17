@@ -18,11 +18,20 @@ void main()
     struct player playerTurn=whitePlayer;
     while(whitePlayer.numberOfStones>0&&blackPlayer.numberOfStones>0)
     {  
-        do{
-            playerMove=getUserMove(playerTurn,gameSpace);
-        }while(!checkIfLegal(gameSpace,playerMove));
-        gameSpace=makeMove(gameSpace,playerMove);
-        gameSpace=stageflagcheck(gameSpace);
+        if(playerTurn.side==BIALAKULKA)
+        {
+            do{
+                playerMove=getUserMove(playerTurn,gameSpace);
+            }while(!checkIfLegal(gameSpace,playerMove));
+            gameSpace=makeMove(gameSpace,playerMove);
+        }
+        else
+        {
+            struct space AIspace=createSpace(4);
+            AIspace=gameSpace;
+            playerMove=findBestMove(AIspace,whitePlayer,blackPlayer);
+            makeMove(gameSpace, playerMove);
+        }
         stageprint(gameSpace);
         if(findFlag(gameSpace,DOZDJECIA)); //jeżeli można zdjąć gracz ma dodatkową turę i nie zmienia się aktywnego gracza
         else 

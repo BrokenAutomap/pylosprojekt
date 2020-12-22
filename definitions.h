@@ -49,7 +49,7 @@ struct move{ //struktura do przechowywania pozycji odebranej od użytkownika / r
     int xLand;
     int yLand;
     int moveType; //rodzaj ruchu
-    int score; //ocena ruchu
+    float score; //ocena ruchu
     struct player player; //gracz wykonujacy ruch
 };
 

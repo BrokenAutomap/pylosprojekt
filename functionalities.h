@@ -2,11 +2,77 @@
 #define FUNCTIONALITIES
 
 #include "definitions.h"
-float evaluate(struct player white, struct player black, struct space wholeBoard)
+float evaluate(struct player white, struct player black, struct space space)
 {
     float score=0; //dodatni wynik oznacza że czarne mają przewagę
     score = black.numberOfStones - white.numberOfStones;  //gracz mający więcej kamieni w zapasie ma przewagę
-    //   score+= ;  //kamienie w formacji dają małą przewagę
+    for(int level=0;level<space.pileHeight;level++)
+        for(int y=0;y<=level;y++)
+            for(int x=0;x<=level;x++)
+            {
+                switch (space.levelSpace[level].levelPlane[x][y])
+                {
+                    case BIALAKULKA:
+                        if(level>1)
+                        {
+                            int count;
+                            for(int xSquare=0;xSquare<2;xSquare++)
+                            {
+                                for(int ySquare=0;ySquare<2;ySquare++)
+                                {
+                                    if(x+xSquare>level||y+ySquare>level) 
+                                    {
+                                        count=0;
+                                        break;
+                                    }
+                                    if(space.levelSpace[level].levelPlane[x+xSquare][y+ySquare]==CZARNAKULKA)
+                                    {
+                                        count=0;
+                                        break;
+                                    }
+                                    if(space.levelSpace[level].levelPlane[x+xSquare][y+ySquare]==BIALAKULKA)
+                                    {
+                                        count++;
+                                    }
+                                }    
+                            }
+                            if(count==4) score-=1;
+                            else if(count==3) score-=0.5;
+                        }
+                        break;
+                    case CZARNAKULKA:
+                    if(level>1)
+                        {
+                            int count;
+                            for(int xSquare=0;xSquare<2;xSquare++)
+                            {
+                                for(int ySquare=0;ySquare<2;ySquare++)
+                                {
+                                    if(x+xSquare>level||y+ySquare>level) 
+                                    {
+                                        count=0;
+                                        break;
+                                    }
+                                    if(space.levelSpace[level].levelPlane[x+xSquare][y+ySquare]==BIALAKULKA)
+                                    {
+                                        count=0;
+                                        break;
+                                    }
+                                    if(space.levelSpace[level].levelPlane[x+xSquare][y+ySquare]==CZARNAKULKA)
+                                    {
+                                        count++;
+                                    }
+                                }    
+                            }
+                            if(count==4) score+=1;
+                            else if(count==3) score+=0.5;
+                        }
+                        break;
+                    default:
+                        break;
+                }
+                    
+            }
     return score;
 }
 
@@ -56,7 +122,7 @@ void stageprint(struct space space) // wypisuje zawartość
             }
             printf("\n");
         }   
-        printf("\n\n");
+        printf("\n");
     }  
 }
 
@@ -94,10 +160,15 @@ struct space stageflagcheck(struct space space) // sprawdza flagi
 {
     struct space newspace = space;
 
+    for (int i = 0; i < newspace.pileHeight; i++)// wszystkie na zero
+            for (int  row = 0; row <= i; row++)
+                for (int col = 0; col <= i; col++)
+                    newspace.levelSpace[i].levelPlaneFlags[col][row] = 0;
+
     for (int  row = 0; row < space.pileHeight; row++) //za każdym razem trzeba ustawiać podłogę jako wspartą, bo flagi na podłodze zmieniają się w trakcie gry, a część znajdująca wspieranie nie uwzględnia podłogi, działa tylko dla wyższych poziomów
         for (int col = 0; col < space.pileHeight; col++)
         {
-            newspace.levelSpace[3].levelPlaneFlags[col][row] = WSPARTA;
+            newspace.levelSpace[newspace.pileHeight-1].levelPlaneFlags[col][row] = WSPARTA;
         } 
 
     for (int i = 1; i < newspace.pileHeight; i++)// jeżeli pod polem są kulki to pole jest wsparte
@@ -177,7 +248,7 @@ struct move getUserMove(struct player player, struct space space) //funkcja pobi
             move.yStart--;
             move.xLand--;
             move.yLand--;
-            move.player.numberOfStones-=2;
+            move.player.numberOfStones+=2;
             return move;
         default:
             return move;
@@ -205,6 +276,7 @@ struct space makeMove(struct space space,struct move move) //funkcja wykonuje da
     space=stageflagcheck(space);
     return space;
 }
+
 struct space undoMove(struct space space, struct move move)
 {
     switch (move.moveType)
@@ -222,11 +294,32 @@ struct space undoMove(struct space space, struct move move)
             break;
         default:
             break;
-
     }
     space=stageflagcheck(space);
     return space;
 }
+
+int checkIfLegalHelper(struct space space, struct move move)
+{
+    space=makeMove(space, move);
+    for(int level=1;level<space.pileHeight;level++)
+    {
+        for(int x=0;x<=level;x++)
+        {
+            for(int y=0;y<=level;y++)
+            {
+                if(space.levelSpace[level].levelPlane[x][y]==PUSTEPOLE&&space.levelSpace[level].levelPlaneFlags[x][y]==ZABLOKOWANA)
+                {
+                    space=undoMove(space,move);
+                    return 0;
+                }
+            }
+        }
+    }
+    space=undoMove(space,move);
+    return 1;
+}
+
 int checkIfLegal(struct space space, struct move move) //sprawdza czy typ ruchu jest poprawny i czy ruch jest dozwolony
 {
     if(findFlag(space,DOZDJECIA) && move.moveType!=ZDJECIE) return 0;
@@ -241,8 +334,11 @@ int checkIfLegal(struct space space, struct move move) //sprawdza czy typ ruchu 
                 return 1;
             else return 0;
         case PRZENIESIENIE: //przeniesienie kulki wyzej na planszy
-            if(move.levelHeightStart>move.levelHeightLand && space.levelSpace[move.levelHeightStart].levelPlane[move.xStart][move.yStart]==move.player.side && space.levelSpace[move.levelHeightLand].levelPlane[move.xLand][move.yLand]==PUSTEPOLE && space.levelSpace[move.levelHeightStart].levelPlaneFlags[move.xStart][move.yStart]!=ZABLOKOWANA && space.levelSpace[move.levelHeightLand].levelPlaneFlags[move.xLand][move.yLand]==WSPARTA)
+            if(move.levelHeightStart>move.levelHeightLand && space.levelSpace[move.levelHeightStart].levelPlane[move.xStart][move.yStart]==move.player.side && space.levelSpace[move.levelHeightLand].levelPlane[move.xLand][move.yLand]==PUSTEPOLE && space.levelSpace[move.levelHeightStart].levelPlaneFlags[move.xStart][move.yStart]!=ZABLOKOWANA && space.levelSpace[move.levelHeightLand].levelPlaneFlags[move.xLand][move.yLand]==WSPARTA && checkIfLegalHelper(space,move)==1)
+            {
                 return 1;
+            }
+                
             else return 0;
         default:
             return 0;
@@ -304,7 +400,7 @@ struct moveList* generateAllMoves(struct space space, struct player player)
                                             struct move move;
                                             move.moveType=ZDJECIE;
                                             move.player.side=player.side;
-                                            move.player.numberOfStones=player.numberOfStones-2;
+                                            move.player.numberOfStones=player.numberOfStones+2;
                                             move.levelHeightStart=level;
                                             move.xStart=x;
                                             move.yStart=y;
@@ -331,11 +427,11 @@ struct moveList* generateAllMoves(struct space space, struct player player)
                         }
                         else if(space.levelSpace[level].levelPlane[x][y]==player.side) //przenoszenie kulki poziom wyzej
                         {
-                            for(int levelHelp=1;levelHelp<space.pileHeight-1;levelHelp++) //szukam miejsc w które mogę przenieść kulkę
+                            for(int levelHelp=1;levelHelp<level-1;levelHelp++) //szukam miejsc w które mogę przenieść kulkę
                                 for(int xHelp=0;xHelp<=levelHelp;xHelp++)
                                     for(int yHelp=0;yHelp<=levelHelp;yHelp++)
                                     {
-                                        if(space.levelSpace[level].levelPlaneFlags[x][y]==WSPARTA)
+                                        if(space.levelSpace[levelHelp].levelPlaneFlags[xHelp][yHelp]==WSPARTA)
                                         {
                                             struct move move;
                                             move.moveType=PRZENIESIENIE;
@@ -346,7 +442,11 @@ struct moveList* generateAllMoves(struct space space, struct player player)
                                             move.levelHeightLand=levelHelp;
                                             move.xLand=xHelp;
                                             move.yLand=yHelp;
-                                            possibleMoves=addMoveToList(possibleMoves, move);
+                                            if(checkIfLegalHelper(space,move))
+                                            {
+                                                possibleMoves=addMoveToList(possibleMoves, move);
+                                            }
+                                            else;
                                         }   
                                     } 
                         }
@@ -365,32 +465,40 @@ void destroyList(struct moveList* moveList)
     free(moveList);
 }
 
-int minMax(struct space startPosition, struct player maximizer, struct player minimizer, int isMaximizing, int depth, int alpha, int beta)
+float minMax(struct space startPosition, struct player maximizer, struct player minimizer, int isMaximizing, int depth, float alpha, float beta)
 {
-    int score=evaluate(minimizer, maximizer, startPosition);
+    float score=evaluate(minimizer, maximizer, startPosition);
     if(maximizer.numberOfStones==0)
     {
-        return -15;
+        return -startPosition.totalNumberOfStones/2;
     }
     if(minimizer.numberOfStones==0)
     {
-        return 15;
+        return startPosition.totalNumberOfStones/2;
     }
-    if(depth==4) 
+    if(depth==8) 
     {
         return score;
     }
     if(isMaximizing)
     {
-        int bestValue=-1000;
+        float bestValue=-1000;
         struct moveList *possibleMovesHead=generateAllMoves(startPosition,maximizer);  
         struct moveList *possibleMoves=possibleMovesHead;
         while(possibleMoves->moveRecord!=NULL)
         {
             struct space currentPosition=startPosition;
             currentPosition=makeMove(currentPosition,possibleMoves->move);
-            int value=minMax(currentPosition,maximizer,minimizer,0,depth+1,alpha,beta);
+            int stoneHolder=maximizer.numberOfStones;
+            maximizer.numberOfStones=possibleMoves->move.player.numberOfStones;
+            float value;
+            if(findFlag(currentPosition,DOZDJECIA))
+                value=minMax(currentPosition,maximizer,minimizer,1,depth+1,alpha,beta);
+            else
+                value=minMax(currentPosition,maximizer,minimizer,0,depth+1,alpha,beta);
+
             currentPosition=undoMove(currentPosition,possibleMoves->move);
+            maximizer.numberOfStones=stoneHolder;
             if(bestValue<value) bestValue=value;
             if(alpha<bestValue) alpha=bestValue;
             if(alpha>=beta) break;
@@ -403,15 +511,22 @@ int minMax(struct space startPosition, struct player maximizer, struct player mi
     {
         struct moveList *possibleMovesHead=generateAllMoves(startPosition,minimizer); 
         struct moveList *possibleMoves=possibleMovesHead;
-        int bestValue=1000;
+        float bestValue=1000;
         while(possibleMoves->moveRecord!=NULL)
         {
             struct space currentPosition=startPosition;
             currentPosition=makeMove(currentPosition,possibleMoves->move);
-            int value=minMax(currentPosition,maximizer,minimizer,1,depth+1,alpha,beta);
+            int stoneHolder=minimizer.numberOfStones;
+            minimizer.numberOfStones=possibleMoves->move.player.numberOfStones;
+            float value;
+            if(findFlag(currentPosition,DOZDJECIA))
+                value=minMax(currentPosition,maximizer,minimizer,0,depth+1,alpha,beta);
+            else
+                value=minMax(currentPosition,maximizer,minimizer,1,depth+1,alpha,beta);
+            minimizer.numberOfStones=stoneHolder;
             currentPosition=undoMove(currentPosition,possibleMoves->move);
             if(bestValue>value) bestValue=value;
-            if(beta>bestValue) alpha=bestValue;
+            if(beta>bestValue) beta=bestValue;
             if(alpha<=beta) break;
             possibleMoves=possibleMoves->moveRecord;
         }
@@ -429,27 +544,37 @@ struct move findBestMove(struct space space, struct player white, struct player 
     evaluationSpace=space;
     struct moveList *moveList=generateAllMoves(evaluationSpace,maximizer);
     struct moveList *currentMove=moveList;
-    int maxScore, bestIndex;
+    int bestIndex=0;
+    float maxScore=-1000;
     while(currentMove!=NULL)
     {
         evaluationSpace=makeMove(evaluationSpace, currentMove->move);
+        int stoneHolder=maximizer.numberOfStones;
+        maximizer.numberOfStones=currentMove->move.player.numberOfStones;
         currentMove->move.score=minMax(evaluationSpace, maximizer, minimizer, 1, 1,-1000,1000);
+        maximizer.numberOfStones=stoneHolder;
         evaluationSpace=undoMove(evaluationSpace,currentMove->move);
+        currentMove=currentMove->moveRecord;
+    }
+    currentMove=moveList;
+    while(currentMove!=NULL)
+    {
         if(maxScore<currentMove->move.score)
         {
             maxScore=currentMove->move.score;
             bestIndex=currentMove->moveId;
         }
+        printf("%f ID %d\n", currentMove->move.score,currentMove->moveId);
         currentMove=currentMove->moveRecord;
     }
-  //  destroySpace(evaluationSpace);
-    currentMove=moveList;
+    currentMove=moveList;    
     for(int i=0;i<bestIndex;i++)
     {
         currentMove=currentMove->moveRecord;
     }
     struct move bestMove=currentMove->move;
-    destroyList(moveList);
+    //destroyList(moveList);
+    printf("najlepszy ruch: %f ID %d\n",bestMove.score,bestIndex);
     return bestMove;
 
 }

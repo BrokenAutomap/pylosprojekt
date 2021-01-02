@@ -22,6 +22,9 @@
 #define ZDJECIE 2
 #define PRZENIESIENIE 3
 
+//maksymalna głębia
+#define MAXDEPTH 8
+
 
 struct space{
     int pileHeight; //wysokość planszy

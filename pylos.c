@@ -23,24 +23,36 @@ void main()
             do{
                 playerMove=getUserMove(playerTurn,gameSpace);
             }while(!checkIfLegal(gameSpace,playerMove));
-            stageprint(gameSpace);
+           // stageprint(gameSpace);
             gameSpace=makeMove(gameSpace,playerMove);
-            stageprint(gameSpace);
+           // stageprint(gameSpace);
             playerTurn.numberOfStones=playerMove.player.numberOfStones;
             whitePlayer=playerTurn;
         }
+     /*   else if(playerTurn.side==CZARNAKULKA) //Do manualnego grania gracz vs gracz
+        {
+            do{
+                playerMove=getUserMove(playerTurn,gameSpace);
+            }while(!checkIfLegal(gameSpace,playerMove));
+           // stageprint(gameSpace);
+            gameSpace=makeMove(gameSpace,playerMove);
+           // stageprint(gameSpace);
+            playerTurn.numberOfStones=playerMove.player.numberOfStones;
+            blackPlayer=playerTurn;
+        }*/
         else
         {
             struct space AIspace=createSpace(4);
             AIspace=gameSpace;
-            stageprint(gameSpace);
+            //stageprint(gameSpace);
             playerMove=findBestMove(AIspace,whitePlayer,blackPlayer);
             makeMove(gameSpace, playerMove);
-            stageprint(gameSpace);
+            //stageprint(gameSpace);
             playerTurn.numberOfStones=playerMove.player.numberOfStones;
             blackPlayer=playerTurn;
         }
         stageprint(gameSpace);
+        printf("score %f",evaluate(whitePlayer,blackPlayer,gameSpace));
         switch (playerMove.moveType)
             {
             case ZDJECIE:
@@ -50,7 +62,7 @@ void main()
                 printf("\nPrzeniesiono %d %d %d %d %d %d\n", playerMove.levelHeightStart,playerMove.xStart,playerMove.yStart,playerMove.levelHeightLand,playerMove.xLand,playerMove.yLand);
                 break;
             case DOLOZENIE:
-                printf("\nDolozono\n");
+                printf("\nDolozono %d %d %d\n",playerMove.levelHeightLand,playerMove.xLand,playerMove.yLand);
                 break;
             default:
                 break;

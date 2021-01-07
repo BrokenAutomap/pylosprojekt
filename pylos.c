@@ -9,7 +9,7 @@
 
 void main()
 {   
-    struct space gameSpace=createSpace(4);
+    struct space gameSpace=createSpace(BOARDSIZE);
     gameSpace=stagefill(gameSpace);
     stageprint(gameSpace);
     struct player whitePlayer = createPlayer(BIALAKULKA, gameSpace);
@@ -29,7 +29,7 @@ void main()
             playerTurn.numberOfStones=playerMove.player.numberOfStones;
             whitePlayer=playerTurn;
         }
-     /*   else if(playerTurn.side==CZARNAKULKA) //Do manualnego grania gracz vs gracz
+        else if(playerTurn.side==CZARNAKULKA) //Do manualnego grania gracz vs gracz
         {
             do{
                 playerMove=getUserMove(playerTurn,gameSpace);
@@ -39,30 +39,28 @@ void main()
            // stageprint(gameSpace);
             playerTurn.numberOfStones=playerMove.player.numberOfStones;
             blackPlayer=playerTurn;
-        }*/
+        }
         else
         {
-            struct space AIspace=createSpace(4);
-            AIspace=gameSpace;
+
             //stageprint(gameSpace);
-            playerMove=findBestMove(AIspace,whitePlayer,blackPlayer);
+            playerMove=findBestMove(gameSpace,whitePlayer,blackPlayer);
             makeMove(gameSpace, playerMove);
             //stageprint(gameSpace);
             playerTurn.numberOfStones=playerMove.player.numberOfStones;
             blackPlayer=playerTurn;
         }
         stageprint(gameSpace);
-        printf("score %f",evaluate(whitePlayer,blackPlayer,gameSpace));
         switch (playerMove.moveType)
             {
             case ZDJECIE:
                 printf("\nZdjeto\n");
                 break;
             case PRZENIESIENIE:
-                printf("\nPrzeniesiono %d %d %d %d %d %d\n", playerMove.levelHeightStart,playerMove.xStart,playerMove.yStart,playerMove.levelHeightLand,playerMove.xLand,playerMove.yLand);
+                printf("\nPrzeniesiono %d %d %d %d %d %d\n", abs(gameSpace.pileHeight-playerMove.levelHeightStart),playerMove.xStart+1,playerMove.yStart+1,playerMove.levelHeightLand+1,playerMove.xLand+1,playerMove.yLand+1);
                 break;
             case DOLOZENIE:
-                printf("\nDolozono %d %d %d\n",playerMove.levelHeightLand,playerMove.xLand,playerMove.yLand);
+                printf("\nDolozono %d %d %d\n",abs(gameSpace.pileHeight-playerMove.levelHeightLand),playerMove.xLand+1,playerMove.yLand+1);
                 break;
             default:
                 break;

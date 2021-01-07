@@ -1,11 +1,11 @@
 #ifndef DEFINITIONS
 #define DEFINITIONS
     #ifndef STANDARDS
-    #define STANDARDS
-    #include <stdio.h>
-    #include <stdlib.h>
-    #include <math.h>
-    #include <string.h>
+        #define STANDARDS
+        #include <stdio.h>
+        #include <stdlib.h>
+        #include <math.h>
+        #include <string.h>
     #endif
 //pola
 #define PUSTEPOLE 0
@@ -24,6 +24,8 @@
 
 //maksymalna głębia
 #define MAXDEPTH 8
+//wielkosc planszy
+#define BOARDSIZE 4
 
 
 struct space{
@@ -61,6 +63,7 @@ struct moveList{ //lista jednokierunkowa przechowująca listę ruchów (potrzebn
     
     struct move move; //informacje o ruchu
     int moveId; //numer ruchu, pozycji w liście
+    int numberOfMoves;
 };
 
 struct level createLevel(int levelIndex)  //funkcja tworząca poziom, alokująca pamięć na planszę i flagi do planszy

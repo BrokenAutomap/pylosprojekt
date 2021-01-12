@@ -5,7 +5,6 @@
 float evaluate(struct player white, struct player black, struct space space, int depth)
 {
     float score=0; //dodatni wynik oznacza że czarne mają przewagę
-    if(depth%2==0) score--;
     score = black.numberOfStones - white.numberOfStones;  //gracz mający więcej kamieni w zapasie ma przewagę
     return score;
 }
@@ -228,8 +227,13 @@ struct space undoMove(struct space space, struct move move)
     switch (move.moveType)
     {
         case ZDJECIE:
-            space.levelSpace[move.levelHeightStart].levelPlane[move.xStart][move.yStart]=move.player.side;
-            space.levelSpace[move.levelHeightLand].levelPlane[move.xLand][move.yLand]=move.player.side;
+            if(move.levelHeightLand==-1)
+                space.levelSpace[move.levelHeightStart].levelPlane[move.xStart][move.yStart]=move.player.side;
+            else
+            {
+                space.levelSpace[move.levelHeightStart].levelPlane[move.xStart][move.yStart]=move.player.side;
+                space.levelSpace[move.levelHeightLand].levelPlane[move.xLand][move.yLand]=move.player.side;
+            }
             break;
         case DOLOZENIE:
             space.levelSpace[move.levelHeightLand].levelPlane[move.xLand][move.yLand]=PUSTEPOLE;
@@ -253,6 +257,8 @@ int checkIfLegal(struct space space, struct move move) //sprawdza czy typ ruchu 
     {
         case ZDJECIE: //zdjecie kulek z planszy
             if(space.levelSpace[move.levelHeightStart].levelPlane[move.xStart][move.yStart]==move.player.side && space.levelSpace[move.levelHeightLand].levelPlane[move.xLand][move.yLand]==move.player.side && space.levelSpace[move.levelHeightStart].levelPlaneFlags[move.xStart][move.yStart]==DOZDJECIA && space.levelSpace[move.levelHeightLand].levelPlaneFlags[move.xLand][move.yLand]==DOZDJECIA)
+                return 1;
+            else if(space.levelSpace[move.levelHeightStart].levelPlane[move.xStart][move.yStart]==move.player.side && move.levelHeightLand==-1 && space.levelSpace[move.levelHeightStart].levelPlaneFlags[move.xStart][move.yStart]==DOZDJECIA)
                 return 1;
             else return 0;
         case DOLOZENIE: //dolozenie kulki do planszy
@@ -320,10 +326,20 @@ struct moveList* generateAllMoves(struct space space, struct player player)
                         if(space.levelSpace[level].levelPlane[x][y]==player.side)
                         {
                             struct moveList *possibleMoves2=NULL;
-                            
+                            struct move move;
+                            move.moveType=ZDJECIE;
+                            move.player.side=player.side;
+                            move.player.numberOfStones=player.numberOfStones+1;
+                            move.levelHeightStart=level;
+                            move.xStart=x;
+                            move.yStart=y;
+                            move.levelHeightLand=-1;
+                            possibleMoves2=addMoveToList(possibleMoves2, move);
+
                             for(int xHelp=x;xHelp<=x+1;xHelp++) //szukam drugiej kulki aby ją zdjąć
                                 for(int yHelp=y;yHelp<=y+1;yHelp++)
-                                {
+                                {   
+                                    if(x+xHelp>level||y+yHelp>level) break;
                                     if(space.levelSpace[level].levelPlaneFlags[xHelp][yHelp]==DOZDJECIA && space.levelSpace[level].levelPlane[xHelp][yHelp]==player.side && !(xHelp==x && yHelp==y) )
                                     {
                                         destroyList(possibleMoves); //zdjecie jest jedynym mozliwym ruchem jezeli dostepne

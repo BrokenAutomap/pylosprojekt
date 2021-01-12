@@ -29,7 +29,7 @@ void main()
             playerTurn.numberOfStones=playerMove.player.numberOfStones;
             whitePlayer=playerTurn;
         }
-        else if(playerTurn.side==CZARNAKULKA) //Do manualnego grania gracz vs gracz
+       /* else if(playerTurn.side==CZARNAKULKA) //Do manualnego grania gracz vs gracz
         {
             do{
                 playerMove=getUserMove(playerTurn,gameSpace);
@@ -39,7 +39,7 @@ void main()
            // stageprint(gameSpace);
             playerTurn.numberOfStones=playerMove.player.numberOfStones;
             blackPlayer=playerTurn;
-        }
+        }*/
         else
         {
 

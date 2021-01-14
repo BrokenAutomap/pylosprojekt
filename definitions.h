@@ -22,10 +22,15 @@
 #define ZDJECIE 2
 #define PRZENIESIENIE 3
 
+
 //maksymalna głębia
-#define MAXDEPTH 8
+#define MAXDEPTH 6
 //wielkosc planszy
 #define BOARDSIZE 4
+
+//wlaczniki
+#define PRZENIESIENIEON 1
+#define ZDJECIEON 1
 
 
 struct space{

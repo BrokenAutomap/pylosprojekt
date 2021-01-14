@@ -16,8 +16,11 @@ void main()
     struct player blackPlayer = createPlayer(CZARNAKULKA, gameSpace);
     struct move playerMove;
     struct player playerTurn=whitePlayer;
+    int manual=0;
     while(whitePlayer.numberOfStones>0&&blackPlayer.numberOfStones>0)
     {  
+        //printf("manual/auto 1/0\n:");
+       // scanf("%d",&manual);
         if(playerTurn.side==BIALAKULKA)
         {
             do{
@@ -29,7 +32,7 @@ void main()
             playerTurn.numberOfStones=playerMove.player.numberOfStones;
             whitePlayer=playerTurn;
         }
-       /* else if(playerTurn.side==CZARNAKULKA) //Do manualnego grania gracz vs gracz
+       else if(playerTurn.side==CZARNAKULKA && manual) //Do manualnego grania gracz vs gracz
         {
             do{
                 playerMove=getUserMove(playerTurn,gameSpace);
@@ -39,10 +42,9 @@ void main()
            // stageprint(gameSpace);
             playerTurn.numberOfStones=playerMove.player.numberOfStones;
             blackPlayer=playerTurn;
-        }*/
+        }
         else
         {
-
             //stageprint(gameSpace);
             playerMove=findBestMove(gameSpace,whitePlayer,blackPlayer);
             makeMove(gameSpace, playerMove);
@@ -51,21 +53,7 @@ void main()
             blackPlayer=playerTurn;
         }
         stageprint(gameSpace);
-        switch (playerMove.moveType)
-            {
-            case ZDJECIE:
-                printf("\nZdjeto\n");
-                break;
-            case PRZENIESIENIE:
-                printf("\nPrzeniesiono %d %d %d %d %d %d\n", abs(gameSpace.pileHeight-playerMove.levelHeightStart),playerMove.xStart+1,playerMove.yStart+1,playerMove.levelHeightLand+1,playerMove.xLand+1,playerMove.yLand+1);
-                break;
-            case DOLOZENIE:
-                printf("\nDolozono %d %d %d\n",abs(gameSpace.pileHeight-playerMove.levelHeightLand),playerMove.xLand+1,playerMove.yLand+1);
-                break;
-            default:
-                break;
-            }
-        printf("\nGracz 1: %d, gracz 2:%d\n", whitePlayer.numberOfStones, blackPlayer.numberOfStones);
+        printMove(gameSpace, playerMove, whitePlayer, blackPlayer);
         if(findFlag(gameSpace,DOZDJECIA)); //jeżeli można zdjąć gracz ma dodatkową turę i nie zmienia się aktywnego gracza
         else 
         {

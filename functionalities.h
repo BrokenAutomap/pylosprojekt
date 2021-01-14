@@ -277,6 +277,25 @@ int checkIfLegal(struct space space, struct move move) //sprawdza czy typ ruchu 
     }
 }
 
+void printMove(struct space gameSpace, struct move playerMove, struct player whitePlayer, struct player blackPlayer)
+{
+    switch (playerMove.moveType)
+            {
+            case ZDJECIE:
+                printf("Zdjeto");
+                break;
+            case PRZENIESIENIE:
+                printf("Przeniesiono %d %d %d %d %d %d", abs(gameSpace.pileHeight-playerMove.levelHeightStart),playerMove.xStart+1,playerMove.yStart+1,playerMove.levelHeightLand+1,playerMove.xLand+1,playerMove.yLand+1);
+                break;
+            case DOLOZENIE:
+                printf("Dolozono %d %d %d",abs(gameSpace.pileHeight-playerMove.levelHeightLand),playerMove.xLand+1,playerMove.yLand+1);
+                break;
+            default:
+                break;
+            }
+       // printf("\nGracz 1: %d, gracz 2:%d\n", whitePlayer.numberOfStones, blackPlayer.numberOfStones);
+}
+
 struct moveList* addMoveToList(struct moveList *head, struct move move)
 {
     if(head==NULL) //jeżeli nie ma głowy, tworzy głowę
@@ -323,7 +342,7 @@ struct moveList* generateAllMoves(struct space space, struct player player)
                     case ZABLOKOWANA: //zablokowanej kulki nie można ruszyć
                         break;
                     case ZDJECIE:  
-                        if(space.levelSpace[level].levelPlane[x][y]==player.side)
+                        if(space.levelSpace[level].levelPlane[x][y]==player.side && ZDJECIEON) 
                         {
                             struct moveList *possibleMoves2=NULL;
                             struct move move;
@@ -372,7 +391,7 @@ struct moveList* generateAllMoves(struct space space, struct player player)
                             move.yLand=y;
                             possibleMoves=addMoveToList(possibleMoves,move);
                         }
-                        else if(space.levelSpace[level].levelPlane[x][y]==player.side) //przenoszenie kulki poziom wyzej //
+                        else if(space.levelSpace[level].levelPlane[x][y]==player.side && PRZENIESIENIEON) //przenoszenie kulki poziom wyzej //
                         {
                             for(int levelHelp=1;levelHelp<=level;levelHelp++) //szukam miejsc w które mogę przenieść kulkę
                                 for(int xHelp=0;xHelp<=levelHelp;xHelp++)
@@ -398,6 +417,8 @@ struct moveList* generateAllMoves(struct space space, struct player player)
                                     } 
                         }
                         break;
+                    default:
+                        break;
                 }
             }
     return possibleMoves;
@@ -405,7 +426,7 @@ struct moveList* generateAllMoves(struct space space, struct player player)
 
 
 
-float minMax(struct space space, struct player maximizer, struct player minimizer, int isMaximizing, int depth, float alpha, float beta)
+float minMax(struct space space, struct player maximizer, struct player minimizer, int isMaximizing, int depth, float alpha, float beta, int moveId)
 {
   
     if(maximizer.numberOfStones==0)
@@ -418,7 +439,8 @@ float minMax(struct space space, struct player maximizer, struct player minimize
     }
     if(depth==MAXDEPTH) 
     { 
-        return evaluate(minimizer, maximizer, space, depth);
+       // printf("%.1f maximizing: %d moveId: %d\n",evaluate(maximizer, minimizer, space, depth), isMaximizing, moveId);
+        return evaluate(maximizer, minimizer, space, depth);
     }
     if(isMaximizing)
     {
@@ -432,8 +454,8 @@ float minMax(struct space space, struct player maximizer, struct player minimize
             maximizer.numberOfStones=possibleMoves->move.player.numberOfStones;
             float value;
 
-            if(findFlag(space,DOZDJECIA)) value=minMax(space,maximizer,minimizer,1,depth+1,alpha,beta);
-            else value=minMax(space,maximizer,minimizer,0,depth+1,alpha,beta);
+            if(findFlag(space,DOZDJECIA)) value=minMax(space,maximizer,minimizer,1,depth+1,alpha,beta,moveId);
+            else value=minMax(space,maximizer,minimizer,0,depth+1,alpha,beta,moveId);
             space=undoMove(space,possibleMoves->move);
             maximizer.numberOfStones=stoneHolder;
             if(bestValue<value) bestValue=value;
@@ -455,8 +477,8 @@ float minMax(struct space space, struct player maximizer, struct player minimize
             int stoneHolder=minimizer.numberOfStones;
             minimizer.numberOfStones=possibleMoves->move.player.numberOfStones;
             float value;
-            if(findFlag(space,DOZDJECIA)) value=minMax(space,maximizer,minimizer,0,depth+1,alpha,beta);
-            else  value=minMax(space,maximizer,minimizer,1,depth+1,alpha,beta);
+            if(findFlag(space,DOZDJECIA)) value=minMax(space,maximizer,minimizer,0,depth+1,alpha,beta, moveId);
+            else  value=minMax(space,maximizer,minimizer,1,depth+1,alpha,beta, moveId );
 
             minimizer.numberOfStones=stoneHolder;
             space=undoMove(space,possibleMoves->move);
@@ -480,15 +502,24 @@ struct move findBestMove(struct space space, struct player white, struct player 
     struct moveList *currentMove=moveList;
     int bestIndex=0;
     float maxScore=-1000;
+    int moveId=0;
     while(currentMove!=NULL)
     {
         evaluationSpace=makeMove(evaluationSpace, currentMove->move);
         int stoneHolder=maximizer.numberOfStones;
         maximizer.numberOfStones=currentMove->move.player.numberOfStones;
-        currentMove->move.score=minMax(evaluationSpace, maximizer, minimizer, 0, 1,-1000,1000);
+        if(findFlag(evaluationSpace,DOZDJECIA))
+        currentMove->move.score=minMax(evaluationSpace, maximizer, minimizer, 1, 0,-1000,1000, moveId);
+        else
+        {
+        currentMove->move.score=minMax(evaluationSpace, maximizer, minimizer, 0, 0,-1000,1000, moveId);
+        }
+        
+        //if(currentMove->move.moveType==PRZENIESIENIE||currentMove->move.moveType==ZDJECIE) currentMove->move.score+=0.5;
         maximizer.numberOfStones=stoneHolder;
         evaluationSpace=undoMove(evaluationSpace,currentMove->move);
         currentMove=currentMove->moveRecord;
+        moveId++;
     }
     currentMove=moveList;
     while(currentMove!=NULL)
@@ -498,7 +529,9 @@ struct move findBestMove(struct space space, struct player white, struct player 
             maxScore=currentMove->move.score;
             bestIndex=currentMove->moveId;
         }
-        printf("%f ID %d move type %d\n", currentMove->move.score,currentMove->moveId,currentMove->move.moveType);
+        printf("%f ID %d move type %d, ", currentMove->move.score,currentMove->moveId,currentMove->move.moveType);
+        printMove(space,currentMove->move,white, black);
+        printf("\n");
         currentMove=currentMove->moveRecord;
     }
     currentMove=moveList;    

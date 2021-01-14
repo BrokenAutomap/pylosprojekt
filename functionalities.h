@@ -6,6 +6,21 @@ float evaluate(struct player white, struct player black, struct space space, int
 {
     float score=0; //dodatni wynik oznacza że czarne mają przewagę
     score = black.numberOfStones - white.numberOfStones;  //gracz mający więcej kamieni w zapasie ma przewagę
+    for(int level=0;level<space.pileHeight;level++)
+        for(int x=0;x<=level;x++)
+            for(int y=0;y<=level;y++)
+                {
+                  if(space.levelSpace[level].levelPlaneFlags[x][y]==ZABLOKOWANA)
+                  {
+                      if(space.levelSpace[level].levelPlane[x][y]==BIALAKULKA) score = score + 1; 
+                      if(space.levelSpace[level].levelPlane[x][y]==CZARNAKULKA) score = score - 1;
+                  }  
+                }
+    
+    if (space.levelSpace[0].levelPlane[0][0] == BIALAKULKA)
+        score = -1000;
+    if (space.levelSpace[0].levelPlane[0][0] == CZARNAKULKA)
+        score = 1000;
     return score;
 }
 
@@ -529,7 +544,7 @@ struct move findBestMove(struct space space, struct player white, struct player 
             maxScore=currentMove->move.score;
             bestIndex=currentMove->moveId;
         }
-        printf("%f ID %d move type %d, ", currentMove->move.score,currentMove->moveId,currentMove->move.moveType);
+        printf("%.2f ID %d move type %d, ", currentMove->move.score,currentMove->moveId,currentMove->move.moveType);
         printMove(space,currentMove->move,white, black);
         printf("\n");
         currentMove=currentMove->moveRecord;

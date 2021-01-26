@@ -137,7 +137,7 @@ struct move getUserMove(struct player *player, struct space space) //funkcja pob
     int levelHeightTemp=100;
     char type[8];
 
-    printf("Rusza się: %d\nRodzaje ruchu: DOLOZ, PRZENIES, ZDEJMIJ\n: ", player->side);
+    printf("Rusza sie: %d\nRodzaje ruchu: DOLOZ, PRZENIES, ZDEJMIJ\n: ", player->side);
     scanf("%s",type);
     if(!strcmp(type,"DOLOZ")) move.moveType=DOLOZENIE;
     else if (!strcmp(type,"PRZENIES")) move.moveType=PRZENIESIENIE;
@@ -147,7 +147,7 @@ struct move getUserMove(struct player *player, struct space space) //funkcja pob
     switch(move.moveType)
     {
         case DOLOZENIE:
-            printf("\nPozycja na której chcesz położyć kulkę (wysokość x y)\n: ");
+            printf("\nPozycja na ktorej chcesz polozyc kulke (wysokosc x y)\n: ");
             scanf("%d %d %d", &levelHeightTemp,&move.xLand,&move.yLand);
             move.heightLand=abs(levelHeightTemp-space.pileHeight);
             move.xLand--;
@@ -155,10 +155,10 @@ struct move getUserMove(struct player *player, struct space space) //funkcja pob
             move.stonesAfterMove=player->numberOfStones-1;
             return move;
         case PRZENIESIENIE:
-            printf("\nPozycja z której przenosisz i na którą przenosisz\nPoczątkowa pozycja (wysokość x t)\n:");
+            printf("\nPozycja z ktorej przenosisz i na ktora przenosisz\nPoczatkowa pozycja (wysokosc x t)\n:");
             scanf("%d %d %d", &levelHeightTemp,&move.xStart,&move.yStart);
             move.heightStart=abs(levelHeightTemp-space.pileHeight);
-            printf("\nKońcowa pozycja (wysokość x t)\n:");
+            printf("\nKoncowa pozycja (wysokość x t)\n:");
             scanf("%d %d %d", &levelHeightTemp,&move.xLand,&move.yLand);
             move.heightLand=abs(levelHeightTemp-space.pileHeight);
             move.xLand--;
@@ -168,7 +168,7 @@ struct move getUserMove(struct player *player, struct space space) //funkcja pob
             move.stonesAfterMove=player->numberOfStones;
             return move;
         case ZDJECIE:
-            printf("\nPozycje dwóch kulek które zdejmujesz\nPierwsza kulka\n:");
+            printf("\nPozycje dwoch kulek które zdejmujesz\nPierwsza kulka\n:");
             scanf("%d %d %d", &levelHeightTemp,&move.xStart,&move.yStart);
             move.heightStart=abs(levelHeightTemp-space.pileHeight);
             printf("\nDruga kulka\n:");
@@ -258,17 +258,17 @@ int checkIfLegal(struct space space, struct move move) //sprawdza czy typ ruchu 
     switch (move.moveType)
     {
         case ZDJECIE: //zdjecie kulek z planszy
-            if(space.levelSpace[move.heightStart].levelPlane[move.xStart][move.yStart]==move.side && space.levelSpace[move.heightLand].levelPlane[move.xLand][move.yLand]==move.side && space.levelSpace[move.heightStart].levelPlaneFlags[move.xStart][move.yStart]==DOZDJECIA && space.levelSpace[move.heightLand].levelPlaneFlags[move.xLand][move.yLand]==DOZDJECIA)
+            if(move.xStart<=move.heightStart&&move.yStart<=move.heightStart&&move.xLand<=move.heightLand&&move.yLand<=move.heightLand&&space.levelSpace[move.heightStart].levelPlane[move.xStart][move.yStart]==move.side && space.levelSpace[move.heightLand].levelPlane[move.xLand][move.yLand]==move.side && space.levelSpace[move.heightStart].levelPlaneFlags[move.xStart][move.yStart]==DOZDJECIA && space.levelSpace[move.heightLand].levelPlaneFlags[move.xLand][move.yLand]==DOZDJECIA)
                 return 1;
-            else if(space.levelSpace[move.heightStart].levelPlane[move.xStart][move.yStart]==move.side && move.heightLand==-1 && space.levelSpace[move.heightStart].levelPlaneFlags[move.xStart][move.yStart]==DOZDJECIA)
+            else if(move.xStart<=move.heightStart&&move.yStart<=move.heightStart&&space.levelSpace[move.heightStart].levelPlane[move.xStart][move.yStart]==move.side && move.heightLand==-1 && space.levelSpace[move.heightStart].levelPlaneFlags[move.xStart][move.yStart]==DOZDJECIA)
                 return 1;
             else return 0;
         case DOLOZENIE: //dolozenie kulki do planszy
-            if(space.levelSpace[move.heightLand].levelPlane[move.xLand][move.yLand]==PUSTEPOLE && space.levelSpace[move.heightLand].levelPlaneFlags[move.xLand][move.yLand]==WSPARTA && move.player->numberOfStones>=0)
+            if(move.xLand<=move.heightLand&&move.yLand<=move.heightLand&&space.levelSpace[move.heightLand].levelPlane[move.xLand][move.yLand]==PUSTEPOLE && space.levelSpace[move.heightLand].levelPlaneFlags[move.xLand][move.yLand]==WSPARTA && move.stonesAfterMove>=0)
                 return 1;
             else return 0;
         case PRZENIESIENIE: //przeniesienie kulki wyzej na planszy
-            if(move.heightStart>move.heightLand && space.levelSpace[move.heightStart].levelPlane[move.xStart][move.yStart]==move.side && space.levelSpace[move.heightLand].levelPlane[move.xLand][move.yLand]==PUSTEPOLE && space.levelSpace[move.heightStart].levelPlaneFlags[move.xStart][move.yStart]!=ZABLOKOWANA && space.levelSpace[move.heightLand].levelPlaneFlags[move.xLand][move.yLand]==WSPARTA && !((move.xStart-move.xLand)<=1 && (move.yStart-move.yLand)<=1 && (move.xStart-move.xLand)>=0 && (move.yStart-move.yLand)>=0))
+            if(move.xStart<=move.heightStart&&move.yStart<=move.heightStart&&move.xLand<=move.heightLand&&move.yLand<=move.heightLand&&move.heightStart>move.heightLand && space.levelSpace[move.heightStart].levelPlane[move.xStart][move.yStart]==move.side && space.levelSpace[move.heightLand].levelPlane[move.xLand][move.yLand]==PUSTEPOLE && space.levelSpace[move.heightStart].levelPlaneFlags[move.xStart][move.yStart]!=ZABLOKOWANA && space.levelSpace[move.heightLand].levelPlaneFlags[move.xLand][move.yLand]==WSPARTA && !((move.xStart-move.xLand)<=1 && (move.yStart-move.yLand)<=1 && (move.xStart-move.xLand)>=0 && (move.yStart-move.yLand)>=0))
             {
                 return 1;
             }
@@ -284,13 +284,13 @@ void printMove(struct space gameSpace, struct move playerMove, struct player *wh
     switch (playerMove.moveType)
             {
             case ZDJECIE:
-                printf("Zdjeto");
+                printf("Zdjeto ");
                 break;
             case PRZENIESIENIE:
-                printf("Przeniesiono %d %d %d %d %d %d", abs(gameSpace.pileHeight-playerMove.heightStart),playerMove.xStart+1,playerMove.yStart+1,playerMove.heightLand+1,playerMove.xLand+1,playerMove.yLand+1);
+                printf("Przeniesiono %d %d %d %d %d %d ", abs(gameSpace.pileHeight-playerMove.heightStart),playerMove.xStart+1,playerMove.yStart+1,playerMove.heightLand+1,playerMove.xLand+1,playerMove.yLand+1);
                 break;
             case DOLOZENIE:
-                printf("Dolozono %d %d %d",abs(gameSpace.pileHeight-playerMove.heightLand),playerMove.xLand+1,playerMove.yLand+1);
+                printf("Dolozono %d %d %d ",abs(gameSpace.pileHeight-playerMove.heightLand),playerMove.xLand+1,playerMove.yLand+1);
                 break;
             default:
                 break;

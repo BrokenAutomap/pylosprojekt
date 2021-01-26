@@ -65,16 +65,6 @@ struct moveList* generateAllMoves(struct space space, struct player *player)
                                 {
                                     if(xSquare+x<=level&&ySquare+y<=level&&space.levelSpace[level].levelPlane[x+xSquare][y+ySquare]==player->side && space.levelSpace[level].levelPlaneFlags[x+xSquare][y+ySquare]==DOZDJECIA)
                                     {
-                                        struct move move;
-                                        move.heightStart=level;
-                                        move.xStart=x+xSquare;
-                                        move.yStart=y+ySquare;
-                                        move.heightLand=-1;
-                                        move.moveType=ZDJECIE;
-                                        move.player=player;
-                                        move.side=player->side;
-                                        move.stonesAfterMove=player->numberOfStones+1;
-                                        moveListNew=addMoveToList(moveListNew,move);
                                         if(!(xSquare==0 && ySquare==0))
                                         {
                                             struct move move;
@@ -90,6 +80,37 @@ struct moveList* generateAllMoves(struct space space, struct player *player)
                                             move.stonesAfterMove=player->numberOfStones+2;
                                             moveListNew=addMoveToList(moveListNew,move);
                                         }
+                                        if(xSquare==1 && ySquare==1 && x+1<=level&&space.levelSpace[level].levelPlane[x+1][y]==player->side && space.levelSpace[level].levelPlaneFlags[x+1][y]==DOZDJECIA)
+                                        {
+                                            struct move move;
+                                            move.heightStart=level;
+                                            move.xStart=x+1;
+                                            move.yStart=y;
+                                            move.heightLand=level;
+                                            move.xLand=x+xSquare;
+                                            move.yLand=y+ySquare;
+                                            move.moveType=ZDJECIE;
+                                            move.player=player;
+                                            move.side=player->side;
+                                            move.stonesAfterMove=player->numberOfStones+2;
+                                            moveListNew=addMoveToList(moveListNew,move);
+                                            if(y+1<=level&&space.levelSpace[level].levelPlane[x][y+1]==player->side && space.levelSpace[level].levelPlaneFlags[x][y+1]==DOZDJECIA)
+                                            {
+                                                move.xStart=x;
+                                                move.yStart=y+1;
+                                                moveListNew=addMoveToList(moveListNew,move);
+                                            } 
+                                        }
+                                        struct move move;
+                                        move.heightStart=level;
+                                        move.xStart=x+xSquare;
+                                        move.yStart=y+ySquare;
+                                        move.heightLand=-1;
+                                        move.moveType=ZDJECIE;
+                                        move.player=player;
+                                        move.side=player->side;
+                                        move.stonesAfterMove=player->numberOfStones+1;
+                                        moveListNew=addMoveToList(moveListNew,move);
                                     }
                                     
                                 }
@@ -103,11 +124,11 @@ struct moveList* generateAllMoves(struct space space, struct player *player)
     return moveList;
 }
 
-float minMax(struct space space, struct player *maximizer, struct player *minimizer, int isMaximizing, int depth, int alpha, int beta)
+float minMax(struct space space, struct player *maximizer, struct player *minimizer, int isMaximizing, int depth, int maxDepth, int alpha, int beta, int node)
 {
     if(maximizer->numberOfStones==0) return -space.totalNumberOfStones/2;
     if(minimizer->numberOfStones==0) return space.totalNumberOfStones/2;
-    if(depth==MAXDEPTH) return evaluate(maximizer, minimizer);
+    if(depth==maxDepth) return evaluate(maximizer, minimizer);
 
     if(isMaximizing)
     {
@@ -117,8 +138,8 @@ float minMax(struct space space, struct player *maximizer, struct player *minimi
         {
 
             space=makeMove(space, moveList->move);
-            if(findFlag(space,DOZDJECIA)) score=minMax(space,maximizer,minimizer,1,depth+1, alpha, beta);
-            else score=minMax(space,maximizer,minimizer,0,depth+1,alpha,beta);
+            if(findFlag(space,DOZDJECIA)) score=minMax(space,maximizer,minimizer,1,depth+1, maxDepth, alpha, beta, node);
+            else score=minMax(space,maximizer,minimizer,0,depth+1,maxDepth,alpha,beta, node);
             space=undoMove(space,moveList->move);
             if(score>bestScore) bestScore=score;
             if(alpha<bestScore) alpha=bestScore;
@@ -134,8 +155,8 @@ float minMax(struct space space, struct player *maximizer, struct player *minimi
         while(moveList!=NULL)
         {
             space=makeMove(space,moveList->move);
-            if(findFlag(space,DOZDJECIA)) score=minMax(space,maximizer,minimizer,0,depth+1,alpha,beta);
-            else score=minMax(space,maximizer,minimizer,1,depth+1,alpha,beta);
+            if(findFlag(space,DOZDJECIA)) score=minMax(space,maximizer,minimizer,0,depth+1, maxDepth,alpha,beta, node);
+            else score=minMax(space,maximizer,minimizer,1,depth+1,maxDepth,alpha,beta, node);
             space=undoMove(space,moveList->move);
             if(bestScore>score) bestScore=score;
             if(beta>bestScore) beta=bestScore;
@@ -152,13 +173,18 @@ struct move bestMove(struct space space, struct player *maximizer, struct player
     struct moveList *moveList=moveListHead;
     float bestScore=-1000, score;
     int bestId=0;
+    int depth=7;
+    if(moveListHead->numberOfMoves<=4) depth=10;
+    else if(moveListHead->numberOfMoves<=6) depth=9;
+    else if(moveListHead->numberOfMoves<=10) depth=8;
     while(moveList!=NULL)
     {
         int stoneCopy=maximizer->numberOfStones;
         space=makeMove(space,moveList->move);
-        moveList->score=minMax(space,maximizer,minimizer,0,0,-1000,1000);
+        if(findFlag(space,DOZDJECIA)) moveList->score=minMax(space,maximizer,minimizer,1,0,depth,-1000,1000, moveList->moveId);
+        else moveList->score=minMax(space,maximizer,minimizer,0,0,depth,-1000,1000, moveList->moveId);
         space=undoMove(space,moveList->move);
-        if(moveList->score>bestScore) 
+        if((moveList->score)>bestScore) 
         {
             bestScore=moveList->score;
             bestId=moveList->moveId;
@@ -170,7 +196,7 @@ struct move bestMove(struct space space, struct player *maximizer, struct player
         
     }
     moveList=moveListHead;
-    for(int i;i<bestId;i++)
+    for(int i=0;i<bestId;i++)
     {
         moveList=moveList->nextMove;
     }

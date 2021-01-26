@@ -25,7 +25,7 @@
 
 
 //maksymalna głębia
-#define MAXDEPTH 7
+#define MAXDEPTH 8
 //wielkosc planszy
 #define BOARDSIZE 4
 
@@ -155,7 +155,7 @@ struct moveList* addMoveToList(struct moveList *head, struct move move)
         newNode->moveId=moveId+1;
         newNode->nextMove=NULL;
         temp->nextMove=newNode;
-
+        head->numberOfMoves=moveId+1; // w glowie dlugosc listy
         return head;
     }
 }
